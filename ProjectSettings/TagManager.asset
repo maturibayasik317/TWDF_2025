@@ -47,5 +47,8 @@ TagManager:
   - name: HighWay
     uniqueID: 1936340681
     locked: 0
+  - name: Object
+    uniqueID: 2652366079
+    locked: 0
   m_RenderingLayers:
   - Default

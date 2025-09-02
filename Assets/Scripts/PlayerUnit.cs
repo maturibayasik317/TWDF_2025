@@ -1,50 +1,59 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine.Tilemaps;
 
 public class PlayerUnit : MonoBehaviour
 {
-    public Tilemap highWayTilemap;      // 高台Tilemap
-    public Tilemap wayTilemap;          // 通路Tilemap
-    public GameObject unitPrefab;       // 配置するユニットのPrefab
+    [Header("Tilemaps")]
+    public Tilemap highWayTilemap; // 高台Tilemap
+    public Tilemap wayTilemap;     // 通路Tilemap
+    [SerializeField]
+    private GameObject highWayTurretPrefab; // 高台ユニットPrefab
+    [SerializeField]
+    private GameObject wayTurretPrefab;     // 通路ユニットPrefab
 
-    public enum UnitType { HighWayUnit, WayUnit }
-    public UnitType unitType = UnitType.WayUnit; // デフォルトは地面ユニット
-
-    private Camera mainCamera;
-
-    void Start()
-    {
-        mainCamera = Camera.main;
-    }
+    private Vector3Int gridPos;
+    private Vector3Int gridHighPos;
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0)) // 左クリック
+        if (Input.GetMouseButtonDown(0))
         {
-            Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-            Vector3Int cellPos = wayTilemap.WorldToCell(mouseWorldPos);
-
-            // 配置可能判定
-            if (CanPlaceUnit(cellPos))
+            gridHighPos = highWayTilemap.WorldToCell(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+            gridPos = wayTilemap.WorldToCell(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+ 
+            if (highWayTilemap.GetTile(gridHighPos) != null)
             {
-                // ユニット設置
-                Vector3 placePos = wayTilemap.GetCellCenterWorld(cellPos);
-                Instantiate(unitPrefab, placePos, Quaternion.identity);
+                GenerateTurret(gridHighPos);
+            }
+            else if (wayTilemap.GetTile(gridPos) != null)
+            {
+                GenerateTurret(gridPos);
             }
         }
     }
 
-    // 配置可能か判定
-    bool CanPlaceUnit(Vector3Int cellPos)
+    /// <summary>
+    /// タイル中央にユニットPrefab生成（ズレ補正も含む）
+    /// </summary>
+    private void GenerateTurret(Vector3Int gridPos, GameObject prefab, Tilemap tilemap)
     {
-        if (unitType == UnitType.HighWayUnit)
-        {
-            return highWayTilemap.GetTile(cellPos) != null;
-        }
-        else if (unitType == UnitType.WayUnit)
-        {
-            return wayTilemap.GetTile(cellPos) != null;
-        }
-        return false;
+        // タイル中央座標
+        Vector3 worldPos = tilemap.GetCellCenterWorld(gridPos);
+
+        // --- ここでズレ補正を行う ---
+        // 例：Prefabのpivotが左下なら、タイルの半分だけX,Yをプラスする
+        //      (TilemapのTileサイズが1なら 0.5f, タイルサイズが違う場合はtilemap.cellSize.x/yで取得)
+        Vector3 offset = Vector3.zero;
+
+        // タイルサイズ取得
+        Vector3 tileSize = tilemap.cellSize;
+        // SpriteRendererのpivotが中央ならoffset不要、左下なら補正
+        // 必要に応じて値を変更
+        // offset = new Vector3(tileSize.x / 2f, tileSize.y / 2f, 0);
+
+        // --- 補正後の座標で生成 ---
+        Instantiate(prefab, worldPos + offset, Quaternion.identity);
     }
 }
