@@ -9,12 +9,19 @@ public class EnemyController : MonoBehaviour
     private PathData pathData;
     [SerializeField, Header("ˆÚ“®‘¬“x")]
     private float speed;
+    [SerializeField, Header("Å‘åHP")]
+    private int maxHp;
+    [SerializeField, Header("HP")]
+    private int hp;
+    private Tween tween; // DOPathƒƒ\ƒbƒh‚Ìˆ—‚ğ‘ã“ü‚µ‚Ä‚¨‚­•Ï”
     private Vector3[] path; // pathData‚©‚çæ“¾‚µ‚½À•W‚ğŠi”[‚·‚é‚½‚ß‚Ì”z—ñ
     private Animator animator;
 
 
     void Start()
     {
+        hp = maxHp;
+
         TryGetComponent(out animator);
 
         // Œo˜H‚ğæ“¾
@@ -26,9 +33,9 @@ public class EnemyController : MonoBehaviour
         // ˆÚ“®ŠÔ‚ğŒvZ (‹——£ € ‘¬“x)
         float moveDuration = totalDistance / speed;
         // Œo˜H‚É‰ˆ‚Á‚ÄˆÚ“®
-        transform.DOPath(path, moveDuration)
-                 .SetEase(Ease.Linear)
-                 .OnWaypointChange(x => ChangeWalkingAnimation(x));
+        tween = transform.DOPath(path, moveDuration)
+                                .SetEase(Ease.Linear)
+                                .OnWaypointChange(x => ChangeWalkingAnimation(x));
         //“G‚ªƒS[ƒ‹‚É‚Â‚¢‚½‚Æ‚«
         transform.DOPath(path, 1000 / speed)
     .   SetEase(Ease.Linear)
@@ -39,7 +46,6 @@ public class EnemyController : MonoBehaviour
 
     }
 
-    // Update is called once per frame
     void Update()
     {
         
@@ -89,5 +95,23 @@ public class EnemyController : MonoBehaviour
             animator.SetFloat("Y", 0f);
             animator.SetFloat("X", 1.0f);
         }
+    }
+
+    //ƒ_ƒ[ƒWŒvZ
+    public void CalcDamage(int amount)
+    {
+        hp = Mathf.Clamp(hp -= amount, 0, maxHp);
+        Debug.Log("c‚èHP : " + hp);
+        if (hp <= 0) // HP‚ª0ˆÈ‰º‚É‚È‚Á‚½‚ç
+        {
+            DestroyEnemy(); // “G‚ğ”j‰ó
+        }
+    }
+
+    //“G‚ÌŒ‚”j
+    public void DestroyEnemy()
+    {
+        tween.Kill(); // tween•Ï”‚É‘ã“ü‚³‚ê‚Ä‚¢‚éˆ—‚ğI—¹‚·‚é
+        Destroy(gameObject); // “G‚Ì”j‰ó
     }
 }

@@ -3,7 +3,6 @@ using UnityEngine.Tilemaps;
 
 public class PlayerUnit : MonoBehaviour
 {
-    //ユニットの生成位置がおかしい直せ
     [Header("Tilemaps")]
     public Tilemap highWayTilemap;
     public Tilemap wayTilemap;
