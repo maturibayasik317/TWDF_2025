@@ -67,34 +67,17 @@ public class EnemyController : MonoBehaviour
     private void ChangeWalkingAnimation(int index)
     {
         // 次の移動先がない場合は処理を終了
-        if (index >= path.Length)
+        if (index >= path.Length - 1)
         {
             return;
         }
-        // 左方向
-        if (transform.position.x > path[index].x)
-        {
-            animator.SetFloat("Y", 0f);
-            animator.SetFloat("X", -1.0f);
-        }
-        // 上方向
-        else if (transform.position.y < path[index].y)
-        {
-            animator.SetFloat("X", 0f);
-            animator.SetFloat("Y", 1.0f);
-        }
-        // 下方向
-        else if (transform.position.y > path[index].y)
-        {
-            animator.SetFloat("X", 0f);
-            animator.SetFloat("Y", -1.0f);
-        }
-        // 右方向
-        else
-        {
-            animator.SetFloat("Y", 0f);
-            animator.SetFloat("X", 1.0f);
-        }
+
+        // 移動先の方向を計算
+        Vector2 direction = (path[index + 1] - path[index]).normalized;
+
+        // XとY方向をアニメーターに設定
+        animator.SetFloat("X", Mathf.Round(direction.x));
+        animator.SetFloat("Y", Mathf.Round(direction.y));
     }
 
     //ダメージ計算
@@ -113,5 +96,11 @@ public class EnemyController : MonoBehaviour
     {
         tween.Kill(); // tween変数に代入されている処理を終了する
         Destroy(gameObject); // 敵の破壊
+    }
+
+    // </summary>
+    public void ReachedGoal()
+    {
+        DestroyEnemy(); // 敵を破壊する
     }
 }
