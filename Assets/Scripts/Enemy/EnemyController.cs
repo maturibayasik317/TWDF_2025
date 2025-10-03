@@ -16,13 +16,12 @@ public class EnemyController : MonoBehaviour
     private Tween tween; // DOPathメソッドの処理を代入しておく変数
     private Vector3[] path; // pathDataから取得した座標を格納するための配列
     private Animator animator;
+    private GameManager gameManager;
+    public EnemySetting.EnemyData enemyData;
 
 
     void Start()
     {
-        hp = maxHp;
-
-        TryGetComponent(out animator);
 
         // 経路を取得
         path = pathData.pathArray.Select(x => x.position).ToArray();
@@ -49,6 +48,29 @@ public class EnemyController : MonoBehaviour
     void Update()
     {
         
+    }
+
+    // 敵データを初期化
+    public void InitializeEnemy(PathData selectedPath, GameManager gameManager, EnemySetting.EnemyData enemyData)
+    {
+        this.enemyData = enemyData; // EnemyDataを代入
+        speed = this.enemyData.speed; // 移動速度を設定
+        maxHp = this.enemyData.maxHp; // 最大HPを設定
+        this.gameManager = gameManager;
+        hp = maxHp; // 現在のHPを設定
+        if (TryGetComponent(out animator)) // Animatorコンポーネントを取得して代入
+        {
+            // Animatorコンポーネントが取得できたら、アニメーションの上書きをする
+            SetUpAnimation();
+        }
+        path = selectedPath.pathArray.Select(x => x.position).ToArray(); // 経路を取得
+        float totalDistance = CalculatePathLength(path); // 経路の総距離を計算
+        float moveDuration = totalDistance / enemyData.speed; // 移動時間を計算
+        // 経路に沿って移動する処理をtween変数に代入
+        tween = transform.DOPath(path, moveDuration)
+                         .SetEase(Ease.Linear)
+                         .OnWaypointChange(x => ChangeWalkingAnimation(x));
+        Debug.Log($"生成された敵: {enemyData.name}, HP: {hp}, 速度: {speed}");
     }
 
     // 経路の総距離を計算
@@ -78,6 +100,15 @@ public class EnemyController : MonoBehaviour
         // XとY方向をアニメーターに設定
         animator.SetFloat("X", Mathf.Round(direction.x));
         animator.SetFloat("Y", Mathf.Round(direction.y));
+    }
+
+    // アニメーションを変更
+    private void SetUpAnimation()
+    {
+        if (enemyData.overrideController != null) // アニメーション用のデータがあれば
+        {
+            animator.runtimeAnimatorController = enemyData.overrideController; // アニメーションを上書きする
+        }
     }
 
     //ダメージ計算

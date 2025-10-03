@@ -15,5 +15,6 @@ public class EnemySetting : ScriptableObject
         public string name; // 名前
         public int maxHp;   // 最大HP
         public float speed; // 移動速度
+        public AnimatorOverrideController overrideController; // 敵の移動アニメーション
     }
 }

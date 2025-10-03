@@ -7,7 +7,7 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField]
     private EnemyController enemyPrefab; // 敵のプレハブ
     [SerializeField]
-    private PathData pathData; // 移動経路情報
+    private PathData[] pathDataArray; // 移動経路情報の配列
     [SerializeField]
     private GameManager gameManager;
 
@@ -33,8 +33,18 @@ public class EnemySpawner : MonoBehaviour
     // 敵の生成
     public void Spawn()
     {
+        // ランダムな経路を選択
+        PathData selectedPath = pathDataArray[Random.Range(0, pathDataArray.Length)];
+
         // スタート地点プレハブから敵を生成
-        EnemyController enemyController = Instantiate(enemyPrefab, pathData.positionStart.position, Quaternion.identity);
+        EnemyController enemyController = Instantiate(enemyPrefab, selectedPath.positionStart.position, Quaternion.identity);
+
+        // ランダムな敵を選択
+        int enemyId = Random.Range(0, DBManager.instance.enemySetting.enemyDataList.Count);
+        // 経路情報を初期化
+
+        // 敵データの初期化
+        enemyController.InitializeEnemy(selectedPath, gameManager, DBManager.instance.enemySetting.enemyDataList[enemyId]);
 
     }
 }
