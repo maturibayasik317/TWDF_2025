@@ -18,7 +18,7 @@ public class EnemyController : MonoBehaviour
     private Animator animator;
     private GameManager gameManager;
     public EnemySetting.EnemyData enemyData;
-
+    private bool isBlocked = false; // ブロック状態フラグ
 
     void Start()
     {
@@ -102,8 +102,31 @@ public class EnemyController : MonoBehaviour
         animator.SetFloat("Y", Mathf.Round(direction.y));
     }
 
-    // アニメーションを変更
-    private void SetUpAnimation()
+    // 味方にブロックされたとき呼ぶ
+    public void OnBlocked(MonoBehaviour blocker)
+    {
+        isBlocked = true;
+        if (tween != null && tween.IsActive())
+        {
+            tween.Pause();
+            Debug.Log($"{gameObject.name} がブロックされて停止");
+        }
+    }
+
+    // 味方のブロックが外れたとき呼ぶ
+    public void OnReleased()
+    {
+        isBlocked = false;
+        isBlocked = false;
+        if (tween != null && tween.IsActive())
+        {
+            tween.Play();
+            Debug.Log($"{gameObject.name} のブロック解除、再開");
+        }
+    }
+
+        // アニメーションを変更
+        private void SetUpAnimation()
     {
         if (enemyData.overrideController != null) // アニメーション用のデータがあれば
         {

@@ -15,6 +15,7 @@ public class PlayerUnit : MonoBehaviour
 
     void Update()
     {
+        //ユニットの配置
         if (Input.GetMouseButtonDown(0))
         {
             Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);

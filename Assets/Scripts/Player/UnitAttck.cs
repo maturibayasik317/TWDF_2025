@@ -13,15 +13,8 @@ public class UnitAttck : MonoBehaviour
     [SerializeField]
     private EnemyController enemy; // 敵
 
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.gameObject.TryGetComponent(out enemy))
-        {
-            Debug.Log("敵なし");
-            isAttack = false;
-            enemy = null;
-        }
-    }
+    [SerializeField] private int blockCount = 2; // ブロック上限
+    private List<EnemyController> blockingEnemies = new List<EnemyController>();
 
     private void OnTriggerStay2D(Collider2D collision)
     {
@@ -36,6 +29,36 @@ public class UnitAttck : MonoBehaviour
                 // 攻撃間隔の管理
                 StartCoroutine(ManageAttacks());
             }
+        }
+
+        if (blockingEnemies.Count < blockCount)
+        {
+            EnemyController enemy;
+            if (collision.gameObject.TryGetComponent(out enemy) && !blockingEnemies.Contains(enemy))
+            {
+                blockingEnemies.Add(enemy);
+                enemy.OnBlocked(this); // ブロック開始
+                Debug.Log($"ブロック開始: {enemy.gameObject.name}");
+            }
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+
+        EnemyController enemy;
+        if (collision.gameObject.TryGetComponent(out enemy))
+        {
+            Debug.Log("敵なし");
+            isAttack = false;
+            enemy = null;
+        }
+
+        if (collision.gameObject.TryGetComponent(out enemy) && blockingEnemies.Contains(enemy))
+        {
+            blockingEnemies.Remove(enemy);
+            enemy.OnReleased(); // ブロック解除
+            Debug.Log($"ブロック解除: {enemy.gameObject.name}");
         }
     }
 
