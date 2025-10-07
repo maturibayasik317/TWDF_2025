@@ -33,16 +33,13 @@ public class EnemyController : MonoBehaviour
         float moveDuration = totalDistance / speed;
         // 経路に沿って移動
         tween = transform.DOPath(path, moveDuration)
-                                .SetEase(Ease.Linear)
-                                .OnWaypointChange(x => ChangeWalkingAnimation(x));
-        //敵がゴールについたとき
-        transform.DOPath(path, 1000 / speed)
-    .   SetEase(Ease.Linear)
-    .   OnComplete(() => {
-        // ゴール到達時の処理
-        Destroy(gameObject); // 敵を消す
-        });
+            .SetEase(Ease.Linear)
+            .OnWaypointChange(x => ChangeWalkingAnimation(x));
+            transform.DOPath(path, 1000 / speed)
 
+            .OnComplete(() => {
+                Destroy(gameObject); // ゴール到達時
+        });
     }
 
     void Update()
@@ -102,7 +99,7 @@ public class EnemyController : MonoBehaviour
         animator.SetFloat("Y", Mathf.Round(direction.y));
     }
 
-    // 味方にブロックされたとき呼ぶ
+    // 味方Unitにブロックされたとき呼ぶ
     public void OnBlocked(MonoBehaviour blocker)
     {
         isBlocked = true;
@@ -113,7 +110,7 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    // 味方のブロックが外れたとき呼ぶ
+    // 味方Unitのブロックが外れたとき呼ぶ
     public void OnReleased()
     {
         isBlocked = false;

@@ -13,9 +13,7 @@ public class UnitAttck : MonoBehaviour
     [SerializeField]
     private EnemyController enemy; // 敵
 
-    [SerializeField] private int blockCount = 2; // ブロック上限
-    private List<EnemyController> blockingEnemies = new List<EnemyController>();
-
+   
     private void OnTriggerStay2D(Collider2D collision)
     {
         // 攻撃中ではない場合で、かつ敵の情報を未取得の場合
@@ -30,17 +28,6 @@ public class UnitAttck : MonoBehaviour
                 StartCoroutine(ManageAttacks());
             }
         }
-
-        if (blockingEnemies.Count < blockCount)
-        {
-            EnemyController enemy;
-            if (collision.gameObject.TryGetComponent(out enemy) && !blockingEnemies.Contains(enemy))
-            {
-                blockingEnemies.Add(enemy);
-                enemy.OnBlocked(this); // ブロック開始
-                Debug.Log($"ブロック開始: {enemy.gameObject.name}");
-            }
-        }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
@@ -52,13 +39,6 @@ public class UnitAttck : MonoBehaviour
             Debug.Log("敵なし");
             isAttack = false;
             enemy = null;
-        }
-
-        if (collision.gameObject.TryGetComponent(out enemy) && blockingEnemies.Contains(enemy))
-        {
-            blockingEnemies.Remove(enemy);
-            enemy.OnReleased(); // ブロック解除
-            Debug.Log($"ブロック解除: {enemy.gameObject.name}");
         }
     }
 
