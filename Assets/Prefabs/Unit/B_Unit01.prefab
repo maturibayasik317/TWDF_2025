@@ -130,6 +130,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dca4988dc8ce6f14c971b181ff4a2e04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHp: 6
   blockCount: 2
 --- !u!1 &2967982389672645211
 GameObject:

@@ -32,14 +32,7 @@ public class EnemyController : MonoBehaviour
         // à⁄ìÆéûä‘ÇåvéZ (ãóó£ ÅÄ ë¨ìx)
         float moveDuration = totalDistance / speed;
         // åoòHÇ…âàÇ¡Çƒà⁄ìÆ
-        tween = transform.DOPath(path, moveDuration)
-            .SetEase(Ease.Linear)
-            .OnWaypointChange(x => ChangeWalkingAnimation(x));
-            transform.DOPath(path, 1000 / speed)
 
-            .OnComplete(() => {
-                Destroy(gameObject); // ÉSÅ[ÉãìûíBéû
-        });
     }
 
     void Update()
@@ -65,8 +58,9 @@ public class EnemyController : MonoBehaviour
         float moveDuration = totalDistance / enemyData.speed; // à⁄ìÆéûä‘ÇåvéZ
         // åoòHÇ…âàÇ¡Çƒà⁄ìÆÇ∑ÇÈèàóùÇtweenïœêîÇ…ë„ì¸
         tween = transform.DOPath(path, moveDuration)
-                         .SetEase(Ease.Linear)
-                         .OnWaypointChange(x => ChangeWalkingAnimation(x));
+            .SetEase(Ease.Linear)
+            .OnWaypointChange(x => ChangeWalkingAnimation(x))
+            .OnComplete(() => { Destroy(gameObject); });
         Debug.Log($"ê∂ê¨Ç≥ÇÍÇΩìG: {enemyData.name}, HP: {hp}, ë¨ìx: {speed}");
     }
 
