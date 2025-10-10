@@ -27,8 +27,39 @@ public class UnitBlock : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        // blockingEnemiesの空きをチェック
+        if (blockingEnemies.Count < blockCount && collision.TryGetComponent(out EnemyController enemy))
+        {
+            if (!blockingEnemies.Contains(enemy))
+            {
+                blockingEnemies.Add(enemy);
+                enemy.OnBlocked(this);
+                // EnemyController側に自分を通知（撃破時に呼び出してもらう）
+                enemy.OnDestroyedByBlock += OnEnemyDestroyed;
+            }
+        }
+    }
+
     private void OnTriggerExit2D(Collider2D collision)
     {
+        // 敵が範囲外へ出たときも解除（必要なら）
+        if (collision.TryGetComponent(out EnemyController enemy) && blockingEnemies.Contains(enemy))
+        {
+            blockingEnemies.Remove(enemy);
+            enemy.OnReleased();
+            enemy.OnDestroyedByBlock -= OnEnemyDestroyed;
+        }
+    }
+
+    public void OnEnemyKilled(EnemyController enemy)
+    {
+        if (blockingEnemies.Contains(enemy))
+        {
+            blockingEnemies.Remove(enemy);
+            Debug.Log("敵撃破によるブロック解除: " + enemy.gameObject.name);
+        }
     }
 
     // ユニット撃破時に呼ぶ（Destroy直前）

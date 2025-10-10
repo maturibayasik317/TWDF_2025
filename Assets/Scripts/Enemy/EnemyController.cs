@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening; 
 using System.Linq;
+using System;
 public class EnemyController : MonoBehaviour
 {
     [SerializeField, Header("移動経路の情報")]
@@ -19,6 +20,8 @@ public class EnemyController : MonoBehaviour
     private GameManager gameManager;
     public EnemySetting.EnemyData enemyData;
     private bool isBlocked = false; // ブロック状態フラグ
+    private UnitBlock blockingUnit;
+    public event Action<EnemyController> OnDestroyedByBlock;
 
     void Start()
     {
@@ -108,7 +111,7 @@ public class EnemyController : MonoBehaviour
     public void OnReleased()
     {
         isBlocked = false;
-        isBlocked = false;
+        blockingUnit = null;
         if (tween != null && tween.IsActive())
         {
             tween.Play();
@@ -139,6 +142,8 @@ public class EnemyController : MonoBehaviour
     //敵の撃破
     public void DestroyEnemy()
     {
+        // Destroy直前に通知
+        OnDestroyedByBlock?.Invoke(this);
         tween.Kill(); // tween変数に代入されている処理を終了する
         Destroy(gameObject); // 敵の破壊
     }
