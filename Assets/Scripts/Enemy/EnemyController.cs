@@ -148,6 +148,7 @@ public class EnemyController : MonoBehaviour
         Destroy(gameObject); // “G‚Ì”j‰ó
     }
 
+
     // </summary>
     public void ReachedGoal()
     {

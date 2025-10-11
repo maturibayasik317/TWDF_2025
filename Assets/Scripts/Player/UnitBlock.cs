@@ -76,6 +76,15 @@ public class UnitBlock : MonoBehaviour
         blockingEnemies.Clear();
     }
 
+    private void OnEnemyDestroyed(EnemyController enemy)
+    {
+        if (blockingEnemies.Contains(enemy))
+        {
+            blockingEnemies.Remove(enemy);
+            // 必要に応じてブロック解除処理など追加
+        }
+    }
+
     // 敵からダメージを受ける
     public void TakeDamage(int damage)
     {
