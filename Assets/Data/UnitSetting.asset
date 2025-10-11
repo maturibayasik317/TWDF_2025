@@ -12,4 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d452ba48e7b6955459bc75ab7f49ac40, type: 3}
   m_Name: UnitSetting
   m_EditorClassIdentifier: 
-  UnitDataList: []
+  UnitDataList:
+  - id: 
+    name: 
+    attackPower: 0
+    attackInterval: 0
+    attackRange: 0
+    UnitHeadSprite: {fileID: 0}
+  - id: 
+    name: 
+    attackPower: 0
+    attackInterval: 0
+    attackRange: 0
+    UnitHeadSprite: {fileID: 0}
