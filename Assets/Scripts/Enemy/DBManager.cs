@@ -7,6 +7,7 @@ public class DBManager : MonoBehaviour
 {
     public static DBManager instance;
     public EnemySetting enemySetting;
+    public UnitSetting unitSetting;
 
     void Awake()
     {

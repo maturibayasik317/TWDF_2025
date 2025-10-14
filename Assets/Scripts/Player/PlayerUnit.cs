@@ -1,17 +1,18 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class PlayerUnit : MonoBehaviour
 {
+    !!!ここにが10番にあるTurretGeneratoここを直せ
     [Header("Tilemaps")]
     public Tilemap highWayTilemap;
     public Tilemap wayTilemap;
     [SerializeField] private GameObject highWayTurretPrefab;
     [SerializeField] private GameObject wayTurretPrefab;
+    private HashSet<Vector3Int> occupiedCells = new HashSet<Vector3Int>(); // 砲台配置済みセルを代入
 
-    [Header("Offset Settings")]
-    public Vector2 highWayOffset = new Vector2(-2.4836f, 0.07333f);
-    public Vector2 wayOffset = new Vector2(-3.14f, -0.43f);
+    private UnitSetting.UnitData selectedUnitData = null; // 選択された砲台のデータ
 
     void Update()
     {
@@ -21,21 +22,41 @@ public class PlayerUnit : MonoBehaviour
             Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector3Int gridHighPos = highWayTilemap.WorldToCell(mouseWorldPos);
             Vector3Int gridPos = wayTilemap.WorldToCell(mouseWorldPos);
-
-            if (highWayTilemap.GetTile(gridHighPos) != null)
-            {
-                GenerateTurret(gridHighPos, highWayTurretPrefab, highWayTilemap, highWayOffset);
-            }
-            else if (wayTilemap.GetTile(gridPos) != null)
-            {
-                GenerateTurret(gridPos, wayTurretPrefab, wayTilemap, wayOffset);
-            }
         }
     }
 
-    private void GenerateTurret(Vector3Int gridPos, GameObject prefab, Tilemap tilemap, Vector2 offset)
+    // 砲台生成
+
+    private void GenerateTurret(Vector3Int gridPos)
     {
-        Vector3 worldPos = tilemap.GetCellCenterWorld(gridPos);
-        Instantiate(prefab, worldPos + (Vector3)offset, Quaternion.identity);
+        // 砲台が選択されていなければ何もしない
+        if (selectedUnitData == null)
+        {
+            Debug.Log("砲台が選択されていません");
+            return;
+        }
+        // 配置済みの場合は処理を中断
+        if (occupiedCells.Contains(gridPos))
+        {
+            Debug.Log("このセルにはすでに砲台が配置されています");
+            return;
+        }
+        // クリックした位置に砲台を配置
+        GameObject turret = Instantiate(Prefab, gridPos, Quaternion.identity);
+        // 砲台の位置がタイルの左下を 0,0 として生成しているので、タイルの中央にくるように位置を調整
+        turret.transform.position = new Vector2(turret.transform.position.x + 0.5f, turret.transform.position.y + 0.5f);
+        // TurretControllerを取得する
+        AtkObjCon turretController = turret.GetComponent<AtkObjCon>();
+        // 配置されたセルを登録
+        occupiedCells.Add(gridPos);
+        // 砲台を設置したら選択をリセット
+        selectedUnitData = null;
+    }
+
+    // 砲台を選択する
+    public void SelectTurret(int index)
+    {
+        selectedUnitData = DBManager.instance.unitSetting.turretDataList[index];
+        Debug.Log($"{selectedUnitData.name} を選択");
     }
 }

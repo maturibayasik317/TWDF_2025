@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: UnitSetting
   m_EditorClassIdentifier: 
   UnitDataList:
-  - id: 
-    name: 
-    attackPower: 0
-    attackInterval: 0
-    attackRange: 0
-    UnitHeadSprite: {fileID: 0}
-  - id: 
-    name: 
-    attackPower: 0
-    attackInterval: 0
-    attackRange: 0
-    UnitHeadSprite: {fileID: 0}
+  - id: 0
+    name: Soldier
+    attackPower: 1
+    attackInterval: 60
+    attackRange: 0.8
+    UnitHeadSprite: {fileID: 7542459890707725016, guid: c515f0aee8046104db6f804e662de727, type: 3}
+  - id: 1
+    name: Warrior
+    attackPower: 2
+    attackInterval: 90
+    attackRange: 0.8
+    UnitHeadSprite: {fileID: -8394075476600890139, guid: 89097234b4c923f4997046910e4e7e58, type: 3}

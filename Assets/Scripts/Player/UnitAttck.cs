@@ -12,6 +12,11 @@ public class UnitAttck : MonoBehaviour
     private GameObject attackPrefab; // –C’e‚ÌƒvƒŒƒnƒu
     [SerializeField]
     private Transform firePoint; // UŒ‚‚Ì”­ËˆÊ’u
+    [SerializeField]
+    private CircleCollider2D attackRange; //UŒ‚”ÍˆÍ‚ÌƒRƒ‰ƒCƒ_[
+    [SerializeField]
+    private SpriteRenderer turretHeadSpriteRenderer; // –Cg‚ÌSpriteRenderer
+
     private List<EnemyController> enemiesInRange = new List<EnemyController>(); // UŒ‚”ÍˆÍ“à‚Ì“GƒŠƒXƒg
     private EnemyController targetEnemy = null; // Œ»İ‚Ìƒ^[ƒQƒbƒg
     private bool isAttacking = false; // UŒ‚’†ƒtƒ‰ƒO
@@ -83,6 +88,15 @@ public class UnitAttck : MonoBehaviour
                 }
             }
         }
+    }
+
+    // –C‘äƒf[ƒ^‚ğ‰Šú‰»
+    public void InitializeUnit(UnitSetting.UnitData unitData)
+    {
+        attackPower = unitData.attackPower; // UŒ‚—Í‚ğİ’è
+        attackInterval = unitData.attackInterval; // UŒ‚ŠÔŠu‚ğİ’è
+        attackRange.radius = unitData.attackRange; // UŒ‚”ÍˆÍ‚ğİ’è
+        Debug.Log($"¶¬‚³‚ê‚½–C‘ä: {unitData.name}");
     }
 
     //Å‚à‹ß‚¢“G‚ğ‘_‚¤
