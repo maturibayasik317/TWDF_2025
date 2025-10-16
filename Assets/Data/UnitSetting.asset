@@ -18,10 +18,16 @@ MonoBehaviour:
     attackPower: 1
     attackInterval: 60
     attackRange: 0.8
-    UnitHeadSprite: {fileID: 7542459890707725016, guid: c515f0aee8046104db6f804e662de727, type: 3}
+    unitPrefab: {fileID: 1538439198908420690, guid: 440507190d1fd1a4795fd22d8a238f76, type: 3}
   - id: 1
     name: Warrior
     attackPower: 2
     attackInterval: 90
     attackRange: 0.8
-    UnitHeadSprite: {fileID: -8394075476600890139, guid: 89097234b4c923f4997046910e4e7e58, type: 3}
+    unitPrefab: {fileID: 1538439198908420690, guid: 440efd0717818b64081233d3907f8d68, type: 3}
+  - id: 2
+    name: Wizard
+    attackPower: 3
+    attackInterval: 270
+    attackRange: 3
+    unitPrefab: {fileID: 2692726750289273852, guid: 4c2c52dd0c3730545994f4ffa21ee070, type: 3}

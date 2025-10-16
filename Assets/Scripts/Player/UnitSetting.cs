@@ -16,6 +16,6 @@ public class UnitSetting : ScriptableObject
         public int attackPower; // UŒ‚—Í
         public float attackInterval; // UŒ‚ŠÔŠu
         public float attackRange; // UŒ‚”ÍˆÍ
-        public Sprite UnitHeadSprite; // –Cg‚Ì‰æ‘œ
+        public GameObject unitPrefab;//ƒ†ƒjƒbƒgê—pPrefab
     }
 }

@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: -2311904137889275595}
   - component: {fileID: 5768507310323976163}
   m_Layer: 0
-  m_Name: A_Unit01
+  m_Name: A_Unit01 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -167,8 +167,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dca4988dc8ce6f14c971b181ff4a2e04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHp: 10
-  blockCount: 2
+  maxHp: 15
+  blockCount: 1
 --- !u!1 &5961043171591684777
 GameObject:
   m_ObjectHideFlags: 0
@@ -180,7 +180,7 @@ GameObject:
   - component: {fileID: 4724425495862324083}
   - component: {fileID: 396609070141324042}
   m_Layer: 0
-  m_Name: medievalUnit_01_0
+  m_Name: medievalUnit_03_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -195,7 +195,7 @@ Transform:
   m_GameObject: {fileID: 5961043171591684777}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.17, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -242,10 +242,10 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -450547437
+  m_SortingLayer: 1
   m_SortingOrder: 1
-  m_Sprite: {fileID: 7542459890707725016, guid: c515f0aee8046104db6f804e662de727, type: 3}
+  m_Sprite: {fileID: -8394075476600890139, guid: 89097234b4c923f4997046910e4e7e58, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -337,9 +337,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff55d12633621ab4f90f12b7ce203ab6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackPower: 1
-  attackInterval: 60
-  isAttack: 0
-  enemy: {fileID: 0}
+  attackPower: 2
+  attackInterval: 90
   attackPrefab: {fileID: 8774449732221547610, guid: d36e0c79f3fb83747ba0b1cc3c838966, type: 3}
   firePoint: {fileID: 4724425495862324083}
+  attackRange: {fileID: 7704785142034308770}
+  turretHeadSpriteRenderer: {fileID: 396609070141324042}

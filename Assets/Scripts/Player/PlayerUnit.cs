@@ -1,10 +1,10 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class PlayerUnit : MonoBehaviour
 {
-    !!!ここにが10番にあるTurretGeneratoここを直せ
     [Header("Tilemaps")]
     public Tilemap highWayTilemap;
     public Tilemap wayTilemap;
@@ -21,13 +21,22 @@ public class PlayerUnit : MonoBehaviour
         {
             Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector3Int gridHighPos = highWayTilemap.WorldToCell(mouseWorldPos);
-            Vector3Int gridPos = wayTilemap.WorldToCell(mouseWorldPos);
+            Vector3Int gridWayPos = wayTilemap.WorldToCell(mouseWorldPos);
+
+            if (highWayTilemap.HasTile(gridHighPos))
+            {
+                GenerateTurret(gridHighPos, true); // 高台
+            }
+            else if (wayTilemap.HasTile(gridWayPos))
+            {
+                GenerateTurret(gridWayPos, false); // 地面
+            }
         }
     }
 
     // 砲台生成
 
-    private void GenerateTurret(Vector3Int gridPos)
+    private void GenerateTurret(Vector3Int gridPos, bool isHighWay)
     {
         // 砲台が選択されていなければ何もしない
         if (selectedUnitData == null)
@@ -42,21 +51,25 @@ public class PlayerUnit : MonoBehaviour
             return;
         }
         // クリックした位置に砲台を配置
-        GameObject turret = Instantiate(Prefab, gridPos, Quaternion.identity);
+        GameObject prefabToUse = selectedUnitData.unitPrefab;
+        GameObject unit = Instantiate(prefabToUse, gridPos, Quaternion.identity);
         // 砲台の位置がタイルの左下を 0,0 として生成しているので、タイルの中央にくるように位置を調整
-        turret.transform.position = new Vector2(turret.transform.position.x + 0.5f, turret.transform.position.y + 0.5f);
-        // TurretControllerを取得する
-        AtkObjCon turretController = turret.GetComponent<AtkObjCon>();
+        unit.transform.position = new Vector2(unit.transform.position.x + 
+                                                0.5f, unit.transform.position.y + 0.5f);
+        //UnitAttackを取得
+        UnitAttck unitAttck = unit.GetComponent<UnitAttck>();
+        // 砲台データの初期化
+        unitAttck.InitializeUnit(selectedUnitData);
         // 配置されたセルを登録
         occupiedCells.Add(gridPos);
         // 砲台を設置したら選択をリセット
         selectedUnitData = null;
     }
 
-    // 砲台を選択する
-    public void SelectTurret(int index)
+    // Unitを選択する
+    public void SelectUnit(int index)
     {
-        selectedUnitData = DBManager.instance.unitSetting.turretDataList[index];
+        selectedUnitData = DBManager.instance.unitSetting.UnitDataList[index];
         Debug.Log($"{selectedUnitData.name} を選択");
     }
 }

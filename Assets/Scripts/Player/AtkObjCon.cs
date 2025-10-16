@@ -5,9 +5,9 @@ using System.Collections.Generic;
 public class AtkObjCon : MonoBehaviour
 {
     [SerializeField]
+    private int attackPower; // –C’e‚ÌUŒ‚—Í
     private float speed = 5.0f; // –C’e‚Ì‘¬“x
     private EnemyController targetEnemy; // ƒ^[ƒQƒbƒg‚Æ‚È‚é“G
-    private int attackPower; // –C’e‚ÌUŒ‚—Í
 
     private void Update()
     {
@@ -21,18 +21,14 @@ public class AtkObjCon : MonoBehaviour
         transform.position += direction * speed * Time.deltaTime;
     }
 
-    /// <summary>
-    /// –C’e‚Ì‰Šú‰»
-    /// </summary>
+    // –C’e‚Ì‰Šú‰»
     public void Initialize(EnemyController enemy, int power)
     {
         targetEnemy = enemy;
         attackPower = power;
     }
 
-    /// <summary>
-    /// –C’e‚ª“G‚É“–‚½‚Á‚½‚Æ‚«‚Ìˆ—
-    /// </summary>
+    // –C’e‚ª“G‚É“–‚½‚Á‚½‚Æ‚«‚Ìˆ—
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.TryGetComponent(out EnemyController enemy))
