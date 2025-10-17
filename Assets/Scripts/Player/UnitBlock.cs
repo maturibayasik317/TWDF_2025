@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 public class UnitBlock : MonoBehaviour
 {
@@ -7,6 +8,9 @@ public class UnitBlock : MonoBehaviour
     private int hp;
     [SerializeField] private int blockCount = 2;
     private List<EnemyController> blockingEnemies = new List<EnemyController>();
+
+    public Vector3Int placedCell; // PlayerUnit Ç™ê›íËÇ∑ÇÈ îjâÛí ím
+    public event Action<UnitBlock> OnUnitDestroyed;
 
     void Start()
     {
@@ -92,6 +96,7 @@ public class UnitBlock : MonoBehaviour
         Debug.Log($"{gameObject.name} écÇËHP: {hp}");
         if (hp <= 0)
         {
+            OnUnitDestroyed?.Invoke(this);
             Destroy(gameObject);
             Debug.Log($"{gameObject.name} Ç™åÇîjÇ≥ÇÍÇ‹ÇµÇΩ");
         }
