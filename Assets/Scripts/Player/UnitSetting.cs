@@ -17,5 +17,6 @@ public class UnitSetting : ScriptableObject
         public float attackInterval; // 攻撃間隔
         public float attackRange; // 攻撃範囲
         public GameObject unitPrefab;//ユニット専用Prefab
+        public int blockCount = 1;//ブロック可能数
     }
 }

@@ -12,9 +12,32 @@ public class UnitBlock : MonoBehaviour
     public Vector3Int placedCell; // PlayerUnit が設定する 破壊通知
     public event Action<UnitBlock> OnUnitDestroyed;
 
+    private bool registeredToPlayer = false;
+
     void Start()
     {
         hp = maxHp;
+
+        // PlayerUnit がシングルトンになっていれば自動登録を試みる
+        if (PlayerUnit.Instance != null)
+        {
+            registeredToPlayer = PlayerUnit.Instance.RegisterPlacedUnit(gameObject);
+            if (!registeredToPlayer)
+            {
+                Debug.LogWarning($"PlayerUnit の登録に失敗しました（上限超過）。このユニットを破棄します: {gameObject.name}");
+                Destroy(gameObject);
+                return;
+            }
+        }
+    }
+
+    // Dataから初期化（PlayerUnitから呼ぶ）
+    public void Initialize(UnitSetting.UnitData data)
+    {
+        if (data != null)
+        {
+            blockCount = Mathf.Max(0, data.blockCount);
+        }
     }
 
     private void OnTriggerStay2D(Collider2D collision)
@@ -62,6 +85,7 @@ public class UnitBlock : MonoBehaviour
         if (blockingEnemies.Contains(enemy))
         {
             blockingEnemies.Remove(enemy);
+            enemy.OnDestroyedByBlock -= OnEnemyDestroyed;
             Debug.Log("敵撃破によるブロック解除: " + enemy.gameObject.name);
         }
     }
@@ -69,13 +93,22 @@ public class UnitBlock : MonoBehaviour
     // ユニット撃破時に呼ぶ（Destroy直前）
     private void OnDestroy()
     {
-        foreach (var enemy in blockingEnemies)
+        // ループ中にコレクションを変更しないよう ToArray でコピーして列挙する
+        foreach (var enemy in blockingEnemies.ToArray())
         {
             if (enemy != null)
             {
                 enemy.OnReleased();
+                // イベントが登録されていれば解除する（安全のため try-unsubscribe）
+                enemy.OnDestroyedByBlock -= OnEnemyDestroyed;
                 Debug.Log("ユニット破壊に伴うブロック解除: " + enemy.gameObject.name);
             }
+        }
+        // PlayerUnit に自分の登録解除を依頼
+        if (PlayerUnit.Instance != null && registeredToPlayer)
+        {
+            PlayerUnit.Instance.UnregisterPlacedUnit(gameObject);
+            PlayerUnit.Instance.FreeOccupiedCell(placedCell);
         }
         blockingEnemies.Clear();
     }
@@ -85,7 +118,7 @@ public class UnitBlock : MonoBehaviour
         if (blockingEnemies.Contains(enemy))
         {
             blockingEnemies.Remove(enemy);
-            // 必要に応じてブロック解除処理など追加
+            enemy.OnDestroyedByBlock -= OnEnemyDestroyed;
         }
     }
 
@@ -96,9 +129,28 @@ public class UnitBlock : MonoBehaviour
         Debug.Log($"{gameObject.name} 残りHP: {hp}");
         if (hp <= 0)
         {
+            // 親側へ通知して登録解除
             OnUnitDestroyed?.Invoke(this);
+
+            // PlayerUnit へも登録解除を頼む
+            if (PlayerUnit.Instance != null && registeredToPlayer)
+            {
+                PlayerUnit.Instance.UnregisterPlacedUnit(gameObject);
+                PlayerUnit.Instance.FreeOccupiedCell(placedCell);
+            }
+
             Destroy(gameObject);
-            Debug.Log($"{gameObject.name} が撃破されました");
         }
+    }
+
+    public int CurrentBlockingCount
+    {
+        get { return blockingEnemies.Count; }
+    }
+
+    /// このユニットのブロック可能数（外部確認用）
+    public int BlockCapacity
+    {
+        get { return blockCount; }
     }
 }
