@@ -21,6 +21,12 @@ public class PlayerUnit : MonoBehaviour
     private UnitSetting.UnitData selectedUnitData = null; // 選択されたUnitのデータ
     private bool isPlacing = false; // 多重配置防止
 
+    public event Action<int, int> OnPlacedCountChanged;
+    // 現在の設置数を外部参照できるプロパティ
+    public int CurrentPlacedCount => placedUnits.Count;
+    // 最大設置数を外部参照できるプロパティ
+    public int MaxUnits => maxUnits;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
