@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private int targetFrameRate = 60; // フレームレートの目標値
 
+
     [SerializeField] private EnemySpawner enemySpawner;
     public bool isSpawning; // 敵を生成するかどうかを制御するフラグ
     public int spawnInterval; // 敵を生成する間隔（単位はフレーム）
@@ -19,6 +20,7 @@ public class GameManager : MonoBehaviour
     private int aliveEnemyCount = 0;
 
     [Header("UI")]
+    [SerializeField] private GameObject startButtonObject; // GameStart ボタンの GameObject を Inspector で割当て
     [SerializeField] private GameObject stageClearObject; // StageClear 表示用オブジェクト（Inspectorに割当て、初期は非表示）
     
     void Awake()
@@ -66,6 +68,10 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log("GameManager: StartGame called");
+        if (startButtonObject != null)
+        {
+            startButtonObject.SetActive(false);
+        }
 
         // 敵の生成を許可
         isSpawning = true;
@@ -113,7 +119,7 @@ public class GameManager : MonoBehaviour
     }
 
     // 敵の生成が上限に達したかを確認
-    private void CheckSpawnLimit()
+    public void CheckSpawnLimit()
     {
         if (spawnedEnemyCount >= maxSpawnCount)
         {
@@ -123,7 +129,7 @@ public class GameManager : MonoBehaviour
     }
 
     // ステージクリア判定（スポーン終了かつ生存敵0）
-    private void CheckStageClear()
+    public void CheckStageClear()
     {
         // spawnedEnemyCount >= maxSpawnCount を見ることでスポーンが全て終わっているか確認する
         if (!isSpawning && spawnedEnemyCount >= maxSpawnCount && aliveEnemyCount <= 0)

@@ -25,6 +25,17 @@ public class PlayerUnit : MonoBehaviour
     // 現在の設置数を外部参照できるプロパティ
     public int CurrentPlacedCount => placedUnits.Count;
     // 最大設置数を外部参照できるプロパティ
+
+    private bool allowPlacement = false; 
+    public bool AllowPlacement => allowPlacement;
+    // SetAllowPlacement は GameManager.StartGame から呼ぶ
+    public void SetAllowPlacement(bool allowed)
+    {
+        allowPlacement = allowed;
+        Debug.Log($"PlayerUnit: AllowPlacement set to {allowed}");
+    }
+
+
     public int MaxUnits => maxUnits;
 
     private void Awake()
@@ -56,11 +67,11 @@ public class PlayerUnit : MonoBehaviour
 
             if (highWayTilemap.HasTile(gridHighPos))
             {
-                GenerateTurret(gridHighPos, true); // 高台
+                StartCoroutine(PlaceWithGuard(gridHighPos, true)); // 高台
             }
             else if (wayTilemap.HasTile(gridWayPos))
             {
-                GenerateTurret(gridWayPos, false); // 地面
+                StartCoroutine(PlaceWithGuard(gridWayPos, false)); // 地面
             }
         }
     }
@@ -95,7 +106,7 @@ public class PlayerUnit : MonoBehaviour
         GameObject unit = Instantiate(prefabToUse, gridPos, Quaternion.identity);
         unit.transform.position = new Vector2(unit.transform.position.x + 0.5f, unit.transform.position.y + 0.5f);
 
-        // ここでも登録を試みる（ダブル登録を避けるため UnitBlock 側の登録を優先する設計でもよい）
+        // ここでも登録を試みる（他の生成経路からの生成でも一元管理できる）
         if (!RegisterPlacedUnit(unit))
         {
             Debug.Log("登録に失敗したため生成したユニットを破棄します（上限超過）");
@@ -111,6 +122,15 @@ public class PlayerUnit : MonoBehaviour
             unitAttck.InitializeUnit(selectedUnitData);
         }
 
+        // UnitBlock があれば初期化（blockCount等）
+        UnitBlock unitBlock = unit.GetComponent<UnitBlock>();
+        if (unitBlock != null)
+        {
+            unitBlock.placedCell = gridPos;
+            unitBlock.OnUnitDestroyed += OnUnitDestroyed; // PlayerUnit がユニット破壊通知を受け取る
+            unitBlock.Initialize(selectedUnitData); // Data から blockCount などを設定
+        }
+
         occupiedCells.Add(gridPos);
         selectedUnitData = null;
         isPlacing = false;
@@ -118,9 +138,14 @@ public class PlayerUnit : MonoBehaviour
     }
 
     // Unit生成
-
     private void GenerateTurret(Vector3Int gridPos, bool isHighWay)
     {
+        if (!allowPlacement)
+        {
+            Debug.Log("現在はユニットの配置が許可されていません");
+            return;
+        }
+
         // Unitが選択されていなければ何もしない
         if (selectedUnitData == null)
         {
@@ -144,8 +169,7 @@ public class PlayerUnit : MonoBehaviour
         GameObject prefabToUse = selectedUnitData.unitPrefab;
         GameObject unit = Instantiate(prefabToUse, gridPos, Quaternion.identity);
         // Unitの位置がタイルの左下を 0,0 として生成しているので、タイルの中央にくるように位置を調整
-        unit.transform.position = new Vector2(unit.transform.position.x + 
-                                                0.5f, unit.transform.position.y + 0.5f);
+        unit.transform.position = new Vector2(unit.transform.position.x + 0.5f, unit.transform.position.y + 0.5f);
 
         // UnitBlock コンポーネントを取得して初期化
         UnitBlock unitBlock = unit.GetComponent<UnitBlock>();
@@ -159,9 +183,15 @@ public class PlayerUnit : MonoBehaviour
         //UnitAttackを取得
         UnitAttck unitAttck = unit.GetComponent<UnitAttck>();
         // Unitデータの初期化
-        unitAttck.InitializeUnit(selectedUnitData);
-        // 配置されたセルを登録
+        if (unitAttck != null)
+        {
+            unitAttck.InitializeUnit(selectedUnitData);
+        }
+        // 配置されたセルを登録（ここでも登録）
         placedUnits.Add(unit);
+        // イベント通知（UIなどが購読）
+        OnPlacedCountChanged?.Invoke(placedUnits.Count, maxUnits);
+
         occupiedCells.Add(gridPos);
         // Unitを設置したら選択をリセット
         selectedUnitData = null;

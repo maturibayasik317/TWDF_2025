@@ -4,6 +4,7 @@ using UnityEngine;
 using DG.Tweening; 
 using System.Linq;
 using System;
+
 public class EnemyController : MonoBehaviour
 {
     [SerializeField, Header("移動経路の情報")]
@@ -64,6 +65,11 @@ public class EnemyController : MonoBehaviour
             .SetEase(Ease.Linear)
             .OnWaypointChange(x => ChangeWalkingAnimation(x))
             .OnComplete(() => { Destroy(gameObject); });
+        // 生成（スポーン）されたことを GameManager に通知
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.RegisterSpawnedEnemy(this);
+        }
         Debug.Log($"生成された敵: {enemyData.name}, HP: {hp}, 速度: {speed}");
     }
 
@@ -144,12 +150,21 @@ public class EnemyController : MonoBehaviour
     {
         // Destroy直前に通知
         OnDestroyedByBlock?.Invoke(this);
-        tween.Kill(); // tween変数に代入されている処理を終了する
+
+        // GameManager に死亡を通知（生存カウントをデクリメント）
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.NotifyEnemyDestroyed(this);
+        }
+
+        if (tween != null && tween.IsActive())
+        {
+            tween.Kill(); // tween変数に代入されている処理を終了する
+        }
         Destroy(gameObject); // 敵の破壊
     }
 
-
-    // </summary>
+    //ゴールに着いたら破壊
     public void ReachedGoal()
     {
         DestroyEnemy(); // 敵を破壊する
