@@ -57,9 +57,13 @@ public class GoalContloer : MonoBehaviour
     }
 
     // ゲームオーバー処理
-    private void GameOver()
+    public void GameOver()
     {
         // ゲームオーバー処理を記述
         Debug.Log("ゲームオーバー");
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.GameOver();
+        }
     }
 }

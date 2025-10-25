@@ -22,7 +22,8 @@ public class GameManager : MonoBehaviour
     [Header("UI")]
     [SerializeField] private GameObject startButtonObject; // GameStart ボタンの GameObject を Inspector で割当て
     [SerializeField] private GameObject stageClearObject; // StageClear 表示用オブジェクト（Inspectorに割当て、初期は非表示）
-    
+    [SerializeField] private GameObject gameOverObject; // ゲームオーバーUI追加
+    private bool isGameOver = false; // ゲームオーバー判定フラグ
     void Awake()
     {
         // シングルトン初期化
@@ -36,11 +37,11 @@ public class GameManager : MonoBehaviour
 
         FixFrameRate(); // フレームレートを固定
 
-        // StageClear非表示（
+        // StageClearとGameOverを非表示
         if (stageClearObject != null)
-        {
             stageClearObject.SetActive(false);
-        }
+        if (gameOverObject != null)
+            gameOverObject.SetActive(false);
     }
 
     void Start()
@@ -131,6 +132,9 @@ public class GameManager : MonoBehaviour
     // ステージクリア判定（スポーン終了かつ生存敵0）
     public void CheckStageClear()
     {
+       // ゲームオーバー中は処理しない
+        if (isGameOver) return;
+
         // spawnedEnemyCount >= maxSpawnCount を見ることでスポーンが全て終わっているか確認する
         if (!isSpawning && spawnedEnemyCount >= maxSpawnCount && aliveEnemyCount <= 0)
         {
@@ -151,6 +155,33 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("stageClearObject が Inspector に設定されていません。");
         }
     }
+
+    public void GameOver()
+    {
+        if (isGameOver) return; // 二重呼び出し防止
+        isGameOver = true;
+
+        Debug.Log("GameManager: Game Over!");
+        isSpawning = false; // 敵のスポーン停止
+
+        // 全ての敵を止めたい場合（任意）
+        var enemies = FindObjectsOfType<EnemyController>();
+        foreach (var enemy in enemies)
+        {
+            enemy.StopAllCoroutines(); // 敵の行動停止（EnemyControllerがCoroutineを使っている場合）
+        }
+
+        // GameOver UI表示
+        if (gameOverObject != null)
+        {
+            gameOverObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("gameOverObject が Inspector に設定されていません。");
+        }
+    }
+
 
     // デバッグ用のゲッター（外部確認用）
     public int GetAliveEnemyCount() => aliveEnemyCount;
