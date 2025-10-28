@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -7,37 +7,38 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     [SerializeField]
-    private int targetFrameRate = 60; // ƒtƒŒ[ƒ€ƒŒ[ƒg‚Ì–Ú•W’l
+    private int targetFrameRate = 60; // ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆã®ç›®æ¨™å€¤
 
 
     [SerializeField] private EnemySpawner enemySpawner;
-    public bool isSpawning; // “G‚ð¶¬‚·‚é‚©‚Ç‚¤‚©‚ð§Œä‚·‚éƒtƒ‰ƒO
-    public int spawnInterval; // “G‚ð¶¬‚·‚éŠÔŠui’PˆÊ‚ÍƒtƒŒ[ƒ€j
-    public int spawnedEnemyCount; // ‚±‚ê‚Ü‚Å‚É¶¬‚³‚ê‚½“G‚Ì”
-    public int maxSpawnCount; // “G‚ÌÅ‘å¶¬”
+    public bool isGameStarted = false;
+    public bool isSpawning; // æ•µã‚’ç”Ÿæˆã™ã‚‹ã‹ã©ã†ã‹ã‚’åˆ¶å¾¡ã™ã‚‹ãƒ•ãƒ©ã‚°
+    public int spawnInterval; // æ•µã‚’ç”Ÿæˆã™ã‚‹é–“éš”ï¼ˆå˜ä½ã¯ãƒ•ãƒ¬ãƒ¼ãƒ ï¼‰
+    public int spawnedEnemyCount; // ã“ã‚Œã¾ã§ã«ç”Ÿæˆã•ã‚ŒãŸæ•µã®æ•°
+    public int maxSpawnCount; // æ•µã®æœ€å¤§ç”Ÿæˆæ•°
 
-    // Œ»ÝƒV[ƒ“ã‚É‘¶Ý‚·‚éi¶‘¶‚µ‚Ä‚¢‚éj“G‚Ì”
+    // ç¾åœ¨ã‚·ãƒ¼ãƒ³ä¸Šã«å­˜åœ¨ã™ã‚‹ï¼ˆç”Ÿå­˜ã—ã¦ã„ã‚‹ï¼‰æ•µã®æ•°
     private int aliveEnemyCount = 0;
 
     [Header("UI")]
-    [SerializeField] private GameObject startButtonObject; // GameStart ƒ{ƒ^ƒ“‚Ì GameObject ‚ð Inspector ‚ÅŠ„“–‚Ä
-    [SerializeField] private GameObject stageClearObject; // StageClear •\Ž¦—pƒIƒuƒWƒFƒNƒgiInspector‚ÉŠ„“–‚ÄA‰Šú‚Í”ñ•\Ž¦j
-    [SerializeField] private GameObject gameOverObject; // ƒQ[ƒ€ƒI[ƒo[UI’Ç‰Á
-    private bool isGameOver = false; // ƒQ[ƒ€ƒI[ƒo[”»’èƒtƒ‰ƒO
+    [SerializeField] private GameObject startButtonObject; // GameStart ãƒœã‚¿ãƒ³ã® GameObject ã‚’ Inspector ã§å‰²å½“ã¦
+    [SerializeField] private GameObject stageClearObject; // StageClear è¡¨ç¤ºç”¨ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆï¼ˆInspectorã«å‰²å½“ã¦ã€åˆæœŸã¯éžè¡¨ç¤ºï¼‰
+    [SerializeField] private GameObject gameOverObject; // ã‚²ãƒ¼ãƒ ã‚ªãƒ¼ãƒãƒ¼UIè¿½åŠ 
+    private bool isGameOver = false; // ã‚²ãƒ¼ãƒ ã‚ªãƒ¼ãƒãƒ¼åˆ¤å®šãƒ•ãƒ©ã‚°
     void Awake()
     {
-        // ƒVƒ“ƒOƒ‹ƒgƒ“‰Šú‰»
+        // ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³åˆæœŸåŒ–
         if (Instance != null && Instance != this)
         {
-            Debug.LogWarning("•¡”‚Ì GameManager ‚ª‘¶Ý‚µ‚Ü‚·BŒÃ‚¢ƒCƒ“ƒXƒ^ƒ“ƒX‚ð”jŠü‚µ‚Ü‚·B");
+            Debug.LogWarning("è¤‡æ•°ã® GameManager ãŒå­˜åœ¨ã—ã¾ã™ã€‚å¤ã„ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’ç ´æ£„ã—ã¾ã™ã€‚");
             Destroy(gameObject);
             return;
         }
         Instance = this;
 
-        FixFrameRate(); // ƒtƒŒ[ƒ€ƒŒ[ƒg‚ðŒÅ’è
+        FixFrameRate(); // ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆã‚’å›ºå®š
 
-        // StageClear‚ÆGameOver‚ð”ñ•\Ž¦
+        // StageClearã¨GameOverã‚’éžè¡¨ç¤º
         if (stageClearObject != null)
             stageClearObject.SetActive(false);
         if (gameOverObject != null)
@@ -46,25 +47,23 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        isSpawning = true; // “G‚ð¶¬‰Â”\‚É‚·‚é
-        StartCoroutine(enemySpawner.ManageSpawning());
     }
 
 
 
-    // ƒtƒŒ[ƒ€ƒŒ[ƒg‚ðŒÅ’è
+    // ãƒ•ãƒ¬ãƒ¼ãƒ ãƒ¬ãƒ¼ãƒˆã‚’å›ºå®š
     private void FixFrameRate()
     {
-        QualitySettings.vSyncCount = 0; // V-Synci‚’¼“¯Šúj‚ð–³Œø‰»
+        QualitySettings.vSyncCount = 0; // V-Syncï¼ˆåž‚ç›´åŒæœŸï¼‰ã‚’ç„¡åŠ¹åŒ–
         Application.targetFrameRate = targetFrameRate;
     }
 
-    // ƒQ[ƒ€‚ðŠJŽn‚·‚éiUI‚ÌGameStartƒ{ƒ^ƒ“‚©‚çŒÄ‚Ôj
+    // ã‚²ãƒ¼ãƒ ã‚’é–‹å§‹ã™ã‚‹ï¼ˆUIã®GameStartãƒœã‚¿ãƒ³ã‹ã‚‰å‘¼ã¶ï¼‰
     public void StartGame()
     {
         if (isSpawning)
         {
-            Debug.Log("Šù‚ÉƒQ[ƒ€ŠJŽnÏ‚Ý‚Å‚·");
+            Debug.Log("æ—¢ã«ã‚²ãƒ¼ãƒ é–‹å§‹æ¸ˆã¿ã§ã™");
             return;
         }
 
@@ -74,7 +73,12 @@ public class GameManager : MonoBehaviour
             startButtonObject.SetActive(false);
         }
 
-        // “G‚Ì¶¬‚ð‹–‰Â
+        if (isGameStarted) return;
+        isGameStarted = true;
+        isSpawning = true;
+        startButtonObject.SetActive(false); // â† ãƒœã‚¿ãƒ³ã‚’éžè¡¨ç¤º
+        StartCoroutine(enemySpawner.ManageSpawning());
+        // æ•µã®ç”Ÿæˆã‚’è¨±å¯
         isSpawning = true;
         spawnedEnemyCount = 0;
         aliveEnemyCount = 0;
@@ -85,10 +89,10 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("EnemySpawner ‚ªƒZƒbƒg‚³‚ê‚Ä‚¢‚Ü‚¹‚ñBInspector‚Å enemySpawner ‚ðŠ„‚è“–‚Ä‚Ä‚­‚¾‚³‚¢B");
+            Debug.LogWarning("EnemySpawner ãŒã‚»ãƒƒãƒˆã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚Inspectorã§ enemySpawner ã‚’å‰²ã‚Šå½“ã¦ã¦ãã ã•ã„ã€‚");
         }
 
-        // ƒ†ƒjƒbƒg”z’u‚ð‹–‰ÂiPlayerUnit ‚ª‘¶Ý‚·‚éê‡j
+        // ãƒ¦ãƒ‹ãƒƒãƒˆé…ç½®ã‚’è¨±å¯ï¼ˆPlayerUnit ãŒå­˜åœ¨ã™ã‚‹å ´åˆï¼‰
         if (PlayerUnit.Instance != null)
         {
             PlayerUnit.Instance.SetAllowPlacement(true);
@@ -96,7 +100,7 @@ public class GameManager : MonoBehaviour
     }
 
 
-    // “G‚ªƒXƒ|[ƒ“‚µ‚½‚Æ‚«‚ÉŒÄ‚ÔiSpawner‚Ü‚½‚ÍEnemyController‚Ì‰Šú‰»‚©‚çŒÄ‚Ôj
+    // æ•µãŒã‚¹ãƒãƒ¼ãƒ³ã—ãŸã¨ãã«å‘¼ã¶ï¼ˆSpawnerã¾ãŸã¯EnemyControllerã®åˆæœŸåŒ–ã‹ã‚‰å‘¼ã¶ï¼‰
     public void RegisterSpawnedEnemy(EnemyController enemy)
     {
         spawnedEnemyCount++;
@@ -105,7 +109,7 @@ public class GameManager : MonoBehaviour
         CheckSpawnLimit();
     }
 
-    // “G‚ªŽ€–S‚µ‚½‚Æ‚«‚ÉŒÄ‚ÔiEnemyController.DestroyEnemy ‚©‚çŒÄ‚Ôj
+    // æ•µãŒæ­»äº¡ã—ãŸã¨ãã«å‘¼ã¶ï¼ˆEnemyController.DestroyEnemy ã‹ã‚‰å‘¼ã¶ï¼‰
     public void NotifyEnemyDestroyed(EnemyController enemy)
     {
         aliveEnemyCount = Mathf.Max(0, aliveEnemyCount - 1);
@@ -113,13 +117,13 @@ public class GameManager : MonoBehaviour
         CheckStageClear();
     }
 
-    // “G‚Ìî•ñ‚ðList‚É’Ç‰Á
+    // æ•µã®æƒ…å ±ã‚’Listã«è¿½åŠ 
     public void AddEnemyToList()
     {
-        spawnedEnemyCount++; // ¶¬‚µ‚½“G‚Ì”‚ð‘‚â‚·
+        spawnedEnemyCount++; // ç”Ÿæˆã—ãŸæ•µã®æ•°ã‚’å¢—ã‚„ã™
     }
 
-    // “G‚Ì¶¬‚ªãŒÀ‚É’B‚µ‚½‚©‚ðŠm”F
+    // æ•µã®ç”ŸæˆãŒä¸Šé™ã«é”ã—ãŸã‹ã‚’ç¢ºèª
     public void CheckSpawnLimit()
     {
         if (spawnedEnemyCount >= maxSpawnCount)
@@ -129,20 +133,20 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // ƒXƒe[ƒWƒNƒŠƒA”»’èiƒXƒ|[ƒ“I—¹‚©‚Â¶‘¶“G0j
+    // ã‚¹ãƒ†ãƒ¼ã‚¸ã‚¯ãƒªã‚¢åˆ¤å®šï¼ˆã‚¹ãƒãƒ¼ãƒ³çµ‚äº†ã‹ã¤ç”Ÿå­˜æ•µ0ï¼‰
     public void CheckStageClear()
     {
-       // ƒQ[ƒ€ƒI[ƒo[’†‚Íˆ—‚µ‚È‚¢
+       // ã‚²ãƒ¼ãƒ ã‚ªãƒ¼ãƒãƒ¼ä¸­ã¯å‡¦ç†ã—ãªã„
         if (isGameOver) return;
 
-        // spawnedEnemyCount >= maxSpawnCount ‚ðŒ©‚é‚±‚Æ‚ÅƒXƒ|[ƒ“‚ª‘S‚ÄI‚í‚Á‚Ä‚¢‚é‚©Šm”F‚·‚é
+        // spawnedEnemyCount >= maxSpawnCount ã‚’è¦‹ã‚‹ã“ã¨ã§ã‚¹ãƒãƒ¼ãƒ³ãŒå…¨ã¦çµ‚ã‚ã£ã¦ã„ã‚‹ã‹ç¢ºèªã™ã‚‹
         if (!isSpawning && spawnedEnemyCount >= maxSpawnCount && aliveEnemyCount <= 0)
         {
             ShowStageClear();
         }
     }
 
-    // ƒXƒe[ƒWƒNƒŠƒA•\Ž¦
+    // ã‚¹ãƒ†ãƒ¼ã‚¸ã‚¯ãƒªã‚¢è¡¨ç¤º
     private void ShowStageClear()
     {
         Debug.Log("GameManager: Stage Clear!");
@@ -152,38 +156,38 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("stageClearObject ‚ª Inspector ‚ÉÝ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB");
+            Debug.LogWarning("stageClearObject ãŒ Inspector ã«è¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚");
         }
     }
 
     public void GameOver()
     {
-        if (isGameOver) return; // “ñdŒÄ‚Ño‚µ–hŽ~
+        if (isGameOver) return; // äºŒé‡å‘¼ã³å‡ºã—é˜²æ­¢
         isGameOver = true;
 
         Debug.Log("GameManager: Game Over!");
-        isSpawning = false; // “G‚ÌƒXƒ|[ƒ“’âŽ~
+        isSpawning = false; // æ•µã®ã‚¹ãƒãƒ¼ãƒ³åœæ­¢
 
-        // ‘S‚Ä‚Ì“G‚ðŽ~‚ß‚½‚¢ê‡i”CˆÓj
+        // å…¨ã¦ã®æ•µã‚’æ­¢ã‚ãŸã„å ´åˆï¼ˆä»»æ„ï¼‰
         var enemies = FindObjectsOfType<EnemyController>();
         foreach (var enemy in enemies)
         {
-            enemy.StopAllCoroutines(); // “G‚Ìs“®’âŽ~iEnemyController‚ªCoroutine‚ðŽg‚Á‚Ä‚¢‚éê‡j
+            enemy.StopAllCoroutines(); // æ•µã®è¡Œå‹•åœæ­¢ï¼ˆEnemyControllerãŒCoroutineã‚’ä½¿ã£ã¦ã„ã‚‹å ´åˆï¼‰
         }
 
-        // GameOver UI•\Ž¦
+        // GameOver UIè¡¨ç¤º
         if (gameOverObject != null)
         {
             gameOverObject.SetActive(true);
         }
         else
         {
-            Debug.LogWarning("gameOverObject ‚ª Inspector ‚ÉÝ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB");
+            Debug.LogWarning("gameOverObject ãŒ Inspector ã«è¨­å®šã•ã‚Œã¦ã„ã¾ã›ã‚“ã€‚");
         }
     }
 
 
-    // ƒfƒoƒbƒO—p‚ÌƒQƒbƒ^[iŠO•”Šm”F—pj
+    // ãƒ‡ãƒãƒƒã‚°ç”¨ã®ã‚²ãƒƒã‚¿ãƒ¼ï¼ˆå¤–éƒ¨ç¢ºèªç”¨ï¼‰
     public int GetAliveEnemyCount() => aliveEnemyCount;
     public int GetSpawnedEnemyCount() => spawnedEnemyCount;
 }

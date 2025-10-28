@@ -998,6 +998,10 @@ PrefabInstance:
       value: UnitManeger
       objectReference: {fileID: 0}
     - target: {fileID: 6458524397539176154, guid: eada15c0e10e42f46b0f9873f78fb6f3, type: 3}
+      propertyPath: maxUnits
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6458524397539176154, guid: eada15c0e10e42f46b0f9873f78fb6f3, type: 3}
       propertyPath: wayTilemap
       value: 
       objectReference: {fileID: 449198864}

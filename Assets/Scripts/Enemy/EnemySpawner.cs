@@ -15,6 +15,11 @@ public class EnemySpawner : MonoBehaviour
     // 敵の生成管理
     public IEnumerator ManageSpawning()
     {
+        while (!gameManager.isGameStarted)
+        {
+            yield return null;
+        }
+
         int timer = 0; // タイマーの初期化
         while (gameManager.isSpawning) // 敵を生成可能ならば
         {

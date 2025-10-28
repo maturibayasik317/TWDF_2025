@@ -51,6 +51,8 @@ public class PlayerUnit : MonoBehaviour
 
     void Update()
     {
+        if (GameManager.Instance == null || !GameManager.Instance.isSpawning)
+            return;
         //ユニットの配置
         if (Input.GetMouseButtonDown(0) && !isPlacing)
         {
