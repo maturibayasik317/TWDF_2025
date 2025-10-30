@@ -7,8 +7,9 @@ using System;
 
 public class EnemyController : MonoBehaviour
 {
-    [SerializeField, Header("移動経路の情報")]
-    private PathData pathData;
+
+    /*[SerializeField, Header("移動経路の情報")]
+    private PathData pathData; */
     [SerializeField, Header("移動速度")]
     private float speed;
     [SerializeField, Header("最大HP")]
@@ -26,8 +27,8 @@ public class EnemyController : MonoBehaviour
 
     void Start()
     {
-
-        // 経路を取得
+        TryGetComponent(out animator); 
+     /*   // 経路を取得
         path = pathData.pathArray.Select(x => x.position).ToArray();
         // スタート地点に敵をセット
         transform.position = pathData.positionStart.position;
@@ -36,6 +37,7 @@ public class EnemyController : MonoBehaviour
         // 移動時間を計算 (距離 ÷ 速度)
         float moveDuration = totalDistance / speed;
         // 経路に沿って移動
+     */
 
     }
 
@@ -45,7 +47,7 @@ public class EnemyController : MonoBehaviour
     }
 
     // 敵データを初期化
-    public void InitializeEnemy(PathData selectedPath, GameManager gameManager, EnemySetting.EnemyData enemyData)
+    public void InitializeEnemy(PathData pathData, GameManager gameManager, EnemySetting.EnemyData enemyData)
     {
         this.enemyData = enemyData; // EnemyDataを代入
         speed = this.enemyData.speed; // 移動速度を設定
@@ -57,7 +59,7 @@ public class EnemyController : MonoBehaviour
             // Animatorコンポーネントが取得できたら、アニメーションの上書きをする
             SetUpAnimation();
         }
-        path = selectedPath.pathArray.Select(x => x.position).ToArray(); // 経路を取得
+        path = pathData.pathArray.Select(x => x.position).ToArray(); // 経路を取得
         float totalDistance = CalculatePathLength(path); // 経路の総距離を計算
         float moveDuration = totalDistance / enemyData.speed; // 移動時間を計算
         // 経路に沿って移動する処理をtween変数に代入

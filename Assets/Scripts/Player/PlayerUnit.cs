@@ -1,34 +1,44 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 using System;
+using TMPro;
 
 public class PlayerUnit : MonoBehaviour
 {
     public static PlayerUnit Instance { get; private set; }
 
-    [Header("Tilemaps")]
+    [Header("Tilemapsè¨­å®š")]
     public Tilemap highWayTilemap;
     public Tilemap wayTilemap;
     [SerializeField] private GameObject highWayTurretPrefab;
     [SerializeField] private GameObject wayTurretPrefab;
 
-    [SerializeField] private int maxUnits = 5; // Å‘å”z’u”
-    private List<GameObject> placedUnits = new List<GameObject>(); // ”z’u’†ƒ†ƒjƒbƒg
-    private HashSet<Vector3Int> occupiedCells = new HashSet<Vector3Int>(); // –C‘ä”z’uÏ‚İƒZƒ‹‚ğ‘ã“ü
+    [Header("Unit è¨­å®š")]
+    [SerializeField] private int maxUnits = 5; // æœ€å¤§é…ç½®æ•°
+    [SerializeField] private float placementCooldown = 4f; // é…ç½®ã‚¤ãƒ³ã‚¿ãƒ¼ãƒãƒ«ï¼ˆç§’ï¼‰
 
-    private UnitSetting.UnitData selectedUnitData = null; // ‘I‘ğ‚³‚ê‚½Unit‚Ìƒf[ƒ^
-    private bool isPlacing = false; // ‘½d”z’u–h~
+
+    [Header("UIè¨­å®š")]
+    [SerializeField] private TextMeshProUGUI cooldownText;
+
+    private float placementTimer = 0f; //ã‚¿ã‚¤ãƒãƒ¼
+    private bool isOnCooldown = false; //ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ä¸­ãƒ•ãƒ©ã‚°
+    private List<GameObject> placedUnits = new List<GameObject>(); //é…ç½®ä¸­ãƒ¦ãƒ‹ãƒƒãƒˆ
+    private HashSet<Vector3Int> occupiedCells = new HashSet<Vector3Int>(); //ç ²å°é…ç½®æ¸ˆã¿ã‚»ãƒ«ã‚’ä»£å…¥
+
+    private UnitSetting.UnitData selectedUnitData = null; //é¸æŠã•ã‚ŒãŸUnitã®ãƒ‡ãƒ¼ã‚¿
+    private bool isPlacing = false; //å¤šé‡é…ç½®é˜²æ­¢
 
     public event Action<int, int> OnPlacedCountChanged;
-    // Œ»İ‚Ìİ’u”‚ğŠO•”QÆ‚Å‚«‚éƒvƒƒpƒeƒB
+    // ç¾åœ¨ã®è¨­ç½®æ•°ã‚’å¤–éƒ¨å‚ç…§ã§ãã‚‹ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
     public int CurrentPlacedCount => placedUnits.Count;
-    // Å‘åİ’u”‚ğŠO•”QÆ‚Å‚«‚éƒvƒƒpƒeƒB
+    // æœ€å¤§è¨­ç½®æ•°ã‚’å¤–éƒ¨å‚ç…§ã§ãã‚‹ãƒ—ãƒ­ãƒ‘ãƒ†ã‚£
 
     private bool allowPlacement = false; 
     public bool AllowPlacement => allowPlacement;
-    // SetAllowPlacement ‚Í GameManager.StartGame ‚©‚çŒÄ‚Ô
+    // SetAllowPlacement ã¯ GameManager.StartGame ã‹ã‚‰å‘¼ã¶
     public void SetAllowPlacement(bool allowed)
     {
         allowPlacement = allowed;
@@ -42,7 +52,7 @@ public class PlayerUnit : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Debug.LogWarning("Scene ‚É•¡”‚Ì PlayerUnit ‚ª‘¶İ‚µ‚Ü‚·BŒÃ‚¢ƒCƒ“ƒXƒ^ƒ“ƒX‚ğ”jŠü‚µ‚Ü‚·B");
+            Debug.LogWarning("Scene ã«è¤‡æ•°ã® PlayerUnit ãŒå­˜åœ¨ã—ã¾ã™ã€‚å¤ã„ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’ç ´æ£„ã—ã¾ã™ã€‚");
             Destroy(gameObject);
             return;
         }
@@ -51,15 +61,43 @@ public class PlayerUnit : MonoBehaviour
 
     void Update()
     {
+        // ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³æ›´æ–°ï¼ˆallowPlacementé–¢ä¿‚ãªãå‹•ä½œï¼‰
+        if (isOnCooldown)
+        {
+            placementTimer -= Time.deltaTime;
+            if (placementTimer <= 0f)
+            {
+                isOnCooldown = false;
+                placementTimer = 0f;
+                Debug.Log("ãƒ¦ãƒ‹ãƒƒãƒˆé…ç½®ãŒå†ã³å¯èƒ½ã«ãªã‚Šã¾ã—ãŸã€‚");
+            }
+
+            if (cooldownText != null)
+                cooldownText.text = $"æ¬¡ã®é…ç½®ã¾ã§ï¼š{placementTimer:F1} ç§’";
+        }
+        else
+        {
+            if (cooldownText != null)
+                cooldownText.text = allowPlacement ? "è¨­ç½®å¯èƒ½ï¼" : "å¾…æ©Ÿä¸­...";
+        }
+
+        // ã“ã“ã‹ã‚‰ä¸‹ã¯ allowPlacement ãŒ true ã§ãªã„ã¨å®Ÿè¡Œã•ã‚Œãªã„
+        if (!allowPlacement)
+            return;
+
         if (GameManager.Instance == null || !GameManager.Instance.isSpawning)
             return;
-        //ƒ†ƒjƒbƒg‚Ì”z’u
+
+        // ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ä¸­ã¯é…ç½®ã§ããªã„
+        if (isOnCooldown)
+            return;
+
+        // é…ç½®å‡¦ç†
         if (Input.GetMouseButtonDown(0) && !isPlacing)
         {
-            // ƒNƒŠƒbƒN‚Å‚Ì”z’uˆ—
             if (placedUnits.Count >= maxUnits)
             {
-                Debug.Log($"”z’uãŒÀ‚É’B‚µ‚Ä‚¢‚Ü‚·i{placedUnits.Count}/{maxUnits}j");
+                Debug.Log($"é…ç½®ä¸Šé™ã«é”ã—ã¦ã„ã¾ã™ï¼ˆ{placedUnits.Count}/{maxUnits}ï¼‰");
                 return;
             }
 
@@ -68,38 +106,36 @@ public class PlayerUnit : MonoBehaviour
             Vector3Int gridWayPos = wayTilemap.WorldToCell(mouseWorldPos);
 
             if (highWayTilemap.HasTile(gridHighPos))
-            {
-                StartCoroutine(PlaceWithGuard(gridHighPos, true)); // ‚‘ä
-            }
+                StartCoroutine(PlaceWithGuard(gridHighPos, true));
             else if (wayTilemap.HasTile(gridWayPos))
-            {
-                StartCoroutine(PlaceWithGuard(gridWayPos, false)); // ’n–Ê
-            }
+                StartCoroutine(PlaceWithGuard(gridWayPos, false));
         }
     }
 
-    private System.Collections.IEnumerator PlaceWithGuard(Vector3Int gridPos, bool isHighWay)
+
+
+    private IEnumerator PlaceWithGuard(Vector3Int gridPos, bool isHighWay)
     {
         isPlacing = true;
 
         if (selectedUnitData == null)
         {
-            Debug.Log("Unit‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+            Debug.Log("UnitãŒé¸æŠã•ã‚Œã¦ã„ã¾ã›ã‚“");
             isPlacing = false;
             yield break;
         }
 
         if (occupiedCells.Contains(gridPos))
         {
-            Debug.Log("‚±‚ÌƒZƒ‹‚É‚Í‚·‚Å‚ÉUnit‚ª”z’u‚³‚ê‚Ä‚¢‚Ü‚·");
+            Debug.Log("ã“ã®ã‚»ãƒ«ã«ã¯ã™ã§ã«UnitãŒé…ç½®ã•ã‚Œã¦ã„ã¾ã™");
             isPlacing = false;
             yield break;
         }
 
-        // Ä“xãŒÀƒ`ƒFƒbƒNi‘¼Œo˜H‚Å‘‚¦‚Ä‚¢‚é‰Â”\«j
+        // å†åº¦ä¸Šé™ãƒã‚§ãƒƒã‚¯ï¼ˆä»–çµŒè·¯ã§å¢—ãˆã¦ã„ã‚‹å¯èƒ½æ€§ï¼‰
         if (placedUnits.Count >= maxUnits)
         {
-            Debug.Log($"”z’uãŒÀ‚É’B‚µ‚Ä‚¢‚Ü‚·i{placedUnits.Count}/{maxUnits}j");
+            Debug.Log($"é…ç½®ä¸Šé™ã«é”ã—ã¦ã„ã¾ã™ï¼ˆ{placedUnits.Count}/{maxUnits}ï¼‰");
             isPlacing = false;
             yield break;
         }
@@ -108,126 +144,136 @@ public class PlayerUnit : MonoBehaviour
         GameObject unit = Instantiate(prefabToUse, gridPos, Quaternion.identity);
         unit.transform.position = new Vector2(unit.transform.position.x + 0.5f, unit.transform.position.y + 0.5f);
 
-        // ‚±‚±‚Å‚à“o˜^‚ğ‚İ‚éi‘¼‚Ì¶¬Œo˜H‚©‚ç‚Ì¶¬‚Å‚àˆêŒ³ŠÇ—‚Å‚«‚éj
+        // ã“ã“ã§ã‚‚ç™»éŒ²ã‚’è©¦ã¿ã‚‹ï¼ˆä»–ã®ç”ŸæˆçµŒè·¯ã‹ã‚‰ã®ç”Ÿæˆã§ã‚‚ä¸€å…ƒç®¡ç†ã§ãã‚‹ï¼‰
         if (!RegisterPlacedUnit(unit))
         {
-            Debug.Log("“o˜^‚É¸”s‚µ‚½‚½‚ß¶¬‚µ‚½ƒ†ƒjƒbƒg‚ğ”jŠü‚µ‚Ü‚·iãŒÀ’´‰ßj");
+            Debug.Log("ç™»éŒ²ã«å¤±æ•—ã—ãŸãŸã‚ç”Ÿæˆã—ãŸãƒ¦ãƒ‹ãƒƒãƒˆã‚’ç ´æ£„ã—ã¾ã™ï¼ˆä¸Šé™è¶…éï¼‰");
             Destroy(unit);
             isPlacing = false;
             yield break;
         }
 
-        // UnitAttck ‰Šú‰»iselectedUnitData‚ª•K—vj
+        // UnitAttck åˆæœŸåŒ–ï¼ˆselectedUnitDataãŒå¿…è¦ï¼‰
         UnitAttck unitAttck = unit.GetComponent<UnitAttck>();
         if (unitAttck != null)
         {
             unitAttck.InitializeUnit(selectedUnitData);
         }
 
-        // UnitBlock ‚ª‚ ‚ê‚Î‰Šú‰»iblockCount“™j
+        // UnitBlock ãŒã‚ã‚Œã°åˆæœŸåŒ–ï¼ˆblockCountç­‰ï¼‰
         UnitBlock unitBlock = unit.GetComponent<UnitBlock>();
         if (unitBlock != null)
         {
             unitBlock.placedCell = gridPos;
-            unitBlock.OnUnitDestroyed += OnUnitDestroyed; // PlayerUnit ‚ªƒ†ƒjƒbƒg”j‰ó’Ê’m‚ğó‚¯æ‚é
-            unitBlock.Initialize(selectedUnitData); // Data ‚©‚ç blockCount ‚È‚Ç‚ğİ’è
+            unitBlock.OnUnitDestroyed += OnUnitDestroyed; // PlayerUnit ãŒãƒ¦ãƒ‹ãƒƒãƒˆç ´å£Šé€šçŸ¥ã‚’å—ã‘å–ã‚‹
+            unitBlock.Initialize(selectedUnitData); // Data ã‹ã‚‰ blockCount ãªã©ã‚’è¨­å®š
         }
 
         occupiedCells.Add(gridPos);
         selectedUnitData = null;
         isPlacing = false;
+
+        //é…ç½®å®Œäº†å¾Œã«ã‚¤ãƒ³ã‚¿ãƒ¼ãƒãƒ«é–‹å§‹
+        isOnCooldown = true;
+        placementTimer = placementCooldown;
+        Debug.Log($"ãƒ¦ãƒ‹ãƒƒãƒˆé…ç½®å¾Œã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³é–‹å§‹: {placementCooldown}ç§’");
+
+        //ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³UIæ›´æ–°
+        if (cooldownText != null)
+            cooldownText.text = $"æ¬¡ã®é…ç½®ã¾ã§ï¼š{placementCooldown:F1} ç§’";
+
         yield break;
     }
 
-    // Unit¶¬
+    // Unitç”Ÿæˆ
     private void GenerateTurret(Vector3Int gridPos, bool isHighWay)
     {
         if (!allowPlacement)
         {
-            Debug.Log("Œ»İ‚Íƒ†ƒjƒbƒg‚Ì”z’u‚ª‹–‰Â‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+            Debug.Log("ç¾åœ¨ã¯ãƒ¦ãƒ‹ãƒƒãƒˆã®é…ç½®ãŒè¨±å¯ã•ã‚Œã¦ã„ã¾ã›ã‚“");
             return;
         }
 
-        // Unit‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚È‚¯‚ê‚Î‰½‚à‚µ‚È‚¢
+        // UnitãŒé¸æŠã•ã‚Œã¦ã„ãªã‘ã‚Œã°ä½•ã‚‚ã—ãªã„
         if (selectedUnitData == null)
         {
-            Debug.Log("Unit‚ª‘I‘ğ‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ");
+            Debug.Log("UnitãŒé¸æŠã•ã‚Œã¦ã„ã¾ã›ã‚“");
             return;
         }
-        // ”z’uÏ‚İ‚Ìê‡‚Íˆ—‚ğ’†’f
+        // é…ç½®æ¸ˆã¿ã®å ´åˆã¯å‡¦ç†ã‚’ä¸­æ–­
         if (occupiedCells.Contains(gridPos))
         {
-            Debug.Log("‚±‚ÌƒZƒ‹‚É‚Í‚·‚Å‚ÉUnit‚ª”z’u‚³‚ê‚Ä‚¢‚Ü‚·");
+            Debug.Log("ã“ã®ã‚»ãƒ«ã«ã¯ã™ã§ã«UnitãŒé…ç½®ã•ã‚Œã¦ã„ã¾ã™");
             return;
         }
 
-        // Ä“xãŒÀƒ`ƒFƒbƒN
+        // å†åº¦ä¸Šé™ãƒã‚§ãƒƒã‚¯
         if (placedUnits.Count >= maxUnits)
         {
-            Debug.Log($"”z’uãŒÀ‚É’B‚µ‚Ä‚¢‚Ü‚·i{placedUnits.Count}/{maxUnits}j");
+            Debug.Log($"é…ç½®ä¸Šé™ã«é”ã—ã¦ã„ã¾ã™ï¼ˆ{placedUnits.Count}/{maxUnits}ï¼‰");
             return;
         }
-        // ƒNƒŠƒbƒN‚µ‚½ˆÊ’u‚ÉUnit‚ğ”z’u
+        // ã‚¯ãƒªãƒƒã‚¯ã—ãŸä½ç½®ã«Unitã‚’é…ç½®
         GameObject prefabToUse = selectedUnitData.unitPrefab;
         GameObject unit = Instantiate(prefabToUse, gridPos, Quaternion.identity);
-        // Unit‚ÌˆÊ’u‚ªƒ^ƒCƒ‹‚Ì¶‰º‚ğ 0,0 ‚Æ‚µ‚Ä¶¬‚µ‚Ä‚¢‚é‚Ì‚ÅAƒ^ƒCƒ‹‚Ì’†‰›‚É‚­‚é‚æ‚¤‚ÉˆÊ’u‚ğ’²®
+        // Unitã®ä½ç½®ãŒã‚¿ã‚¤ãƒ«ã®å·¦ä¸‹ã‚’ 0,0 ã¨ã—ã¦ç”Ÿæˆã—ã¦ã„ã‚‹ã®ã§ã€ã‚¿ã‚¤ãƒ«ã®ä¸­å¤®ã«ãã‚‹ã‚ˆã†ã«ä½ç½®ã‚’èª¿æ•´
         unit.transform.position = new Vector2(unit.transform.position.x + 0.5f, unit.transform.position.y + 0.5f);
 
-        // UnitBlock ƒRƒ“ƒ|[ƒlƒ“ƒg‚ğæ“¾‚µ‚Ä‰Šú‰»
+        // UnitBlock ã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’å–å¾—ã—ã¦åˆæœŸåŒ–
         UnitBlock unitBlock = unit.GetComponent<UnitBlock>();
         if (unitBlock != null)
         {
-            // ”z’uƒZƒ‹‚ğƒZƒbƒg
+            // é…ç½®ã‚»ãƒ«ã‚’ã‚»ãƒƒãƒˆ
             unitBlock.placedCell = gridPos;
             unitBlock.OnUnitDestroyed += OnUnitDestroyed;
             unitBlock.Initialize(selectedUnitData);
         }
-        //UnitAttack‚ğæ“¾
+        //UnitAttackã‚’å–å¾—
         UnitAttck unitAttck = unit.GetComponent<UnitAttck>();
-        // Unitƒf[ƒ^‚Ì‰Šú‰»
+        // Unitãƒ‡ãƒ¼ã‚¿ã®åˆæœŸåŒ–
         if (unitAttck != null)
         {
             unitAttck.InitializeUnit(selectedUnitData);
         }
-        // ”z’u‚³‚ê‚½ƒZƒ‹‚ğ“o˜^i‚±‚±‚Å‚à“o˜^j
+        // é…ç½®ã•ã‚ŒãŸã‚»ãƒ«ã‚’ç™»éŒ²ï¼ˆã“ã“ã§ã‚‚ç™»éŒ²ï¼‰
         placedUnits.Add(unit);
-        // ƒCƒxƒ“ƒg’Ê’miUI‚È‚Ç‚ªw“Çj
+        // ã‚¤ãƒ™ãƒ³ãƒˆé€šçŸ¥ï¼ˆUIãªã©ãŒè³¼èª­ï¼‰
         OnPlacedCountChanged?.Invoke(placedUnits.Count, maxUnits);
 
         occupiedCells.Add(gridPos);
-        // Unit‚ğİ’u‚µ‚½‚ç‘I‘ğ‚ğƒŠƒZƒbƒg
+        // Unitã‚’è¨­ç½®ã—ãŸã‚‰é¸æŠã‚’ãƒªã‚»ãƒƒãƒˆ
         selectedUnitData = null;
     }
 
-    // ŠO•”iUnitBlock.Start ‚È‚Çj‚©‚çŒÄ‚Î‚ê‚é“o˜^API
+    // å¤–éƒ¨ï¼ˆUnitBlock.Start ãªã©ï¼‰ã‹ã‚‰å‘¼ã°ã‚Œã‚‹ç™»éŒ²API
     public bool RegisterPlacedUnit(GameObject unit)
     {
         if (unit == null) return false;
         if (placedUnits.Count >= maxUnits) return false;
-        if (placedUnits.Contains(unit)) return true; // Šù‚É“o˜^Ï‚İ‚È‚ç¬Œ÷ˆµ‚¢
+        if (placedUnits.Contains(unit)) return true; // æ—¢ã«ç™»éŒ²æ¸ˆã¿ãªã‚‰æˆåŠŸæ‰±ã„
         placedUnits.Add(unit);
-        Debug.Log($"ƒ†ƒjƒbƒg“o˜^: {unit.name} Œ»İ” {placedUnits.Count}/{maxUnits}");
+        Debug.Log($"ãƒ¦ãƒ‹ãƒƒãƒˆç™»éŒ²: {unit.name} ç¾åœ¨æ•° {placedUnits.Count}/{maxUnits}");
         return true;
     }
 
-    // ‰ğœAPIiƒ†ƒjƒbƒg‚Ì”j‰ó‚ÉŒÄ‚Î‚ê‚éj
+    // è§£é™¤APIï¼ˆãƒ¦ãƒ‹ãƒƒãƒˆã®ç ´å£Šæ™‚ã«å‘¼ã°ã‚Œã‚‹ï¼‰
     public void UnregisterPlacedUnit(GameObject unit)
     {
         if (unit == null) return;
         if (placedUnits.Remove(unit))
         {
-            Debug.Log($"ƒ†ƒjƒbƒg“o˜^‰ğœ: {unit.name} Œ»İ” {placedUnits.Count}/{maxUnits}");
+            Debug.Log($"ãƒ¦ãƒ‹ãƒƒãƒˆç™»éŒ²è§£é™¤: {unit.name} ç¾åœ¨æ•° {placedUnits.Count}/{maxUnits}");
         }
     }
 
-    // Unit‚ğ‘I‘ğ‚·‚é
+    // Unitã‚’é¸æŠã™ã‚‹
     public void SelectUnit(int index)
     {
         selectedUnitData = DBManager.instance.unitSetting.UnitDataList[index];
-        Debug.Log($"{selectedUnitData.name} ‚ğ‘I‘ğ");
+        Debug.Log($"{selectedUnitData.name} ã‚’é¸æŠ");
     }
 
-    // occupiedCells ‚Ì‰ğ•úiUnitBlock ‚©‚çŒÄ‚×‚éŒöŠJƒƒ\ƒbƒhj
+    // occupiedCells ã®è§£æ”¾ï¼ˆUnitBlock ã‹ã‚‰å‘¼ã¹ã‚‹å…¬é–‹ãƒ¡ã‚½ãƒƒãƒ‰ï¼‰
     public void FreeOccupiedCell(Vector3Int cell)
     {
         if (occupiedCells.Contains(cell))
@@ -236,24 +282,24 @@ public class PlayerUnit : MonoBehaviour
         }
     }
 
-    // ƒ†ƒjƒbƒg‚ª”j‰ó‚³‚ê‚½‚Æ‚«‚É UnitBlock ‚©‚çŒÄ‚Î‚ê‚é
+    // ãƒ¦ãƒ‹ãƒƒãƒˆãŒç ´å£Šã•ã‚ŒãŸã¨ãã« UnitBlock ã‹ã‚‰å‘¼ã°ã‚Œã‚‹
     private void OnUnitDestroyed(UnitBlock unitBlock)
     {
-        // nullƒ`ƒFƒbƒN
+        // nullãƒã‚§ãƒƒã‚¯
         if (unitBlock == null) return;
 
-        // “o˜^‰ğœiˆÀ‘S‚Ì‚½‚ßj
+        // ç™»éŒ²è§£é™¤ï¼ˆå®‰å…¨ã®ãŸã‚ï¼‰
         unitBlock.OnUnitDestroyed -= OnUnitDestroyed;
 
-        // occupiedCells ‚ÌŠJ•ú
+        // occupiedCells ã®é–‹æ”¾
         if (occupiedCells.Contains(unitBlock.placedCell))
         {
             occupiedCells.Remove(unitBlock.placedCell);
         }
 
-        // placedUnits ‚©‚çœ‹
+        // placedUnits ã‹ã‚‰é™¤å»
         placedUnits.Remove(unitBlock.gameObject);
 
-        Debug.Log($"ƒ†ƒjƒbƒg‚ª”j‰ó‚³‚ê‚Ü‚µ‚½BŒ»İ‚Ì”z’u”: {placedUnits.Count}/{maxUnits}");
+        Debug.Log($"ãƒ¦ãƒ‹ãƒƒãƒˆãŒç ´å£Šã•ã‚Œã¾ã—ãŸã€‚ç¾åœ¨ã®é…ç½®æ•°: {placedUnits.Count}/{maxUnits}");
     }
 }

@@ -168,12 +168,13 @@ public class GameManager : MonoBehaviour
         Debug.Log("GameManager: Game Over!");
         isSpawning = false; // 敵のスポーン停止
 
+        /* なぜか使えない？
         // 全ての敵を止めたい場合（任意）
         var enemies = FindObjectsOfType<EnemyController>();
         foreach (var enemy in enemies)
         {
             enemy.StopAllCoroutines(); // 敵の行動停止（EnemyControllerがCoroutineを使っている場合）
-        }
+        }*/
 
         // GameOver UI表示
         if (gameOverObject != null)
