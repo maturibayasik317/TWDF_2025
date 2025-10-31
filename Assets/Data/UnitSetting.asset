@@ -16,15 +16,15 @@ MonoBehaviour:
   - id: 0
     name: Soldier
     attackPower: 1
-    attackInterval: 120
-    attackRange: 0.8
+    attackInterval: 90
+    attackRange: 0.6
     unitPrefab: {fileID: 1538439198908420690, guid: 440507190d1fd1a4795fd22d8a238f76, type: 3}
     blockCount: 2
   - id: 1
     name: Warrior
     attackPower: 2
-    attackInterval: 90
-    attackRange: 0.8
+    attackInterval: 150
+    attackRange: 0.6
     unitPrefab: {fileID: 1538439198908420690, guid: 440efd0717818b64081233d3907f8d68, type: 3}
     blockCount: 1
   - id: 2

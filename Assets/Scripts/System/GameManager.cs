@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,10 +10,11 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private int targetFrameRate = 60; // フレームレートの目標値
 
-
+    [Header("Spawner設定")]
     [SerializeField] private EnemySpawner enemySpawner;
+    [Header("敵生成管理")]
     public bool isGameStarted = false;
-    public bool isSpawning; // 敵を生成するかどうかを制御するフラグ
+    public bool isSpawning = false; // 敵を生成するかどうかを制御するフラグ
     public int spawnInterval; // 敵を生成する間隔（単位はフレーム）
     public int spawnedEnemyCount; // これまでに生成された敵の数
     public int maxSpawnCount; // 敵の最大生成数
@@ -24,13 +26,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject startButtonObject; // GameStart ボタンの GameObject を Inspector で割当て
     [SerializeField] private GameObject stageClearObject; // StageClear 表示用オブジェクト（Inspectorに割当て、初期は非表示）
     [SerializeField] private GameObject gameOverObject; // ゲームオーバーUI追加
+    [SerializeField] private TextMeshProUGUI countdownText;
+
     private bool isGameOver = false; // ゲームオーバー判定フラグ
     void Awake()
     {
         // シングルトン初期化
         if (Instance != null && Instance != this)
         {
-            Debug.LogWarning("複数の GameManager が存在します。古いインスタンスを破棄します。");
             Destroy(gameObject);
             return;
         }
@@ -38,11 +41,13 @@ public class GameManager : MonoBehaviour
 
         FixFrameRate(); // フレームレートを固定
 
-        // StageClearとGameOverを非表示
+        // StageClearとGameOverとクールダウンテキストを非表示
         if (stageClearObject != null)
             stageClearObject.SetActive(false);
         if (gameOverObject != null)
             gameOverObject.SetActive(false);
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(false); 
     }
 
     void Start()
@@ -72,13 +77,49 @@ public class GameManager : MonoBehaviour
         {
             startButtonObject.SetActive(false);
         }
-
         if (isGameStarted) return;
         isGameStarted = true;
-        isSpawning = true;
+        isSpawning = false;
         startButtonObject.SetActive(false); // ← ボタンを非表示
         StartCoroutine(enemySpawner.ManageSpawning());
-        // 敵の生成を許可
+
+        spawnedEnemyCount = 0;
+        aliveEnemyCount = 0;
+
+        // ユニット配置を許可（PlayerUnit が存在する場合）
+        if (PlayerUnit.Instance != null)
+        {
+            PlayerUnit.Instance.SetAllowPlacement(true);
+        }
+
+        StartCoroutine(StartCountdown());
+    }
+
+    //ユニットの再配置までのクールダウン
+    private IEnumerator StartCountdown()
+    {
+        // カウントダウン開始（3→2→1→Start!!）
+        if (countdownText != null)
+            countdownText.gameObject.SetActive(true);
+
+        int count = 3;
+        while (count > 0)
+        {
+            countdownText.text = count.ToString();
+            yield return new WaitForSeconds(1f);
+            count--;
+        }
+
+        countdownText.text = "Start!!";
+        yield return new WaitForSeconds(1f);
+        countdownText.gameObject.SetActive(false);
+
+        BeginBattle();
+    }
+
+    private void BeginBattle()
+    {
+        Debug.Log("GameManager: Battle Started!");
         isSpawning = true;
         spawnedEnemyCount = 0;
         aliveEnemyCount = 0;
@@ -87,12 +128,8 @@ public class GameManager : MonoBehaviour
         {
             StartCoroutine(enemySpawner.ManageSpawning());
         }
-        else
-        {
-            Debug.LogWarning("EnemySpawner がセットされていません。Inspectorで enemySpawner を割り当ててください。");
-        }
 
-        // ユニット配置を許可（PlayerUnit が存在する場合）
+        // ユニット配置を許可
         if (PlayerUnit.Instance != null)
         {
             PlayerUnit.Instance.SetAllowPlacement(true);
@@ -105,7 +142,6 @@ public class GameManager : MonoBehaviour
     {
         spawnedEnemyCount++;
         aliveEnemyCount++;
-        Debug.Log($"GameManager: RegisterSpawnedEnemy -> spawnedTotal={spawnedEnemyCount}, alive={aliveEnemyCount}");
         CheckSpawnLimit();
     }
 
@@ -113,7 +149,6 @@ public class GameManager : MonoBehaviour
     public void NotifyEnemyDestroyed(EnemyController enemy)
     {
         aliveEnemyCount = Mathf.Max(0, aliveEnemyCount - 1);
-        Debug.Log($"GameManager: NotifyEnemyDestroyed -> alive={aliveEnemyCount}");
         CheckStageClear();
     }
 
@@ -129,7 +164,6 @@ public class GameManager : MonoBehaviour
         if (spawnedEnemyCount >= maxSpawnCount)
         {
             isSpawning = false;
-            Debug.Log("GameManager: spawn limit reached, stopping spawn");
         }
     }
 

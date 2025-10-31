@@ -85,8 +85,8 @@ public class PlayerUnit : MonoBehaviour
         if (!allowPlacement)
             return;
 
-        if (GameManager.Instance == null || !GameManager.Instance.isSpawning)
-            return;
+     //   if (GameManager.Instance == null || !GameManager.Instance.isSpawning)
+       //     return;
 
         // クールダウン中は配置できない
         if (isOnCooldown)
