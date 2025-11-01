@@ -24,7 +24,6 @@ public class UnitBlock : MonoBehaviour
             registeredToPlayer = PlayerUnit.Instance.RegisterPlacedUnit(gameObject);
             if (!registeredToPlayer)
             {
-                Debug.LogWarning($"PlayerUnit の登録に失敗しました（上限超過）。このユニットを破棄します: {gameObject.name}");
                 Destroy(gameObject);
                 return;
             }
@@ -49,7 +48,6 @@ public class UnitBlock : MonoBehaviour
             {
                 blockingEnemies.Add(enemy);
                 enemy.OnBlocked(this);
-                Debug.Log("OnBlocked呼び出し: " + enemy.gameObject.name);
             }
         }
     }
@@ -86,7 +84,6 @@ public class UnitBlock : MonoBehaviour
         {
             blockingEnemies.Remove(enemy);
             enemy.OnDestroyedByBlock -= OnEnemyDestroyed;
-            Debug.Log("敵撃破によるブロック解除: " + enemy.gameObject.name);
         }
     }
 
@@ -101,7 +98,6 @@ public class UnitBlock : MonoBehaviour
                 enemy.OnReleased();
                 // イベントが登録されていれば解除する（安全のため try-unsubscribe）
                 enemy.OnDestroyedByBlock -= OnEnemyDestroyed;
-                Debug.Log("ユニット破壊に伴うブロック解除: " + enemy.gameObject.name);
             }
         }
         // PlayerUnit に自分の登録解除を依頼

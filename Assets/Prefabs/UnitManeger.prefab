@@ -49,3 +49,5 @@ MonoBehaviour:
   highWayTurretPrefab: {fileID: 2692726750289273852, guid: 4c2c52dd0c3730545994f4ffa21ee070, type: 3}
   wayTurretPrefab: {fileID: 1538439198908420690, guid: 440507190d1fd1a4795fd22d8a238f76, type: 3}
   maxUnits: 3
+  placementCooldown: 4
+  cooldownText: {fileID: 0}

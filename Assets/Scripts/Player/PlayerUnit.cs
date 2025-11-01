@@ -12,8 +12,13 @@ public class PlayerUnit : MonoBehaviour
     [Header("Tilemaps設定")]
     public Tilemap highWayTilemap;
     public Tilemap wayTilemap;
-    [SerializeField] private GameObject highWayTurretPrefab;
-    [SerializeField] private GameObject wayTurretPrefab;
+    [SerializeField] private GameObject highWayTurretPrefab;//高台用タイルマップ
+    [SerializeField] private GameObject wayTurretPrefab;//地上用タイルマップ
+
+    [Header("Highlight設定")]
+    [SerializeField] private Tilemap highlightTilemap; // ハイライト表示用
+    [SerializeField] private TileBase highlightTile;    // 青く光るタイル
+
 
     [Header("Unit 設定")]
     [SerializeField] private int maxUnits = 5; // 最大配置数
@@ -85,9 +90,8 @@ public class PlayerUnit : MonoBehaviour
         if (!allowPlacement)
             return;
 
-     //   if (GameManager.Instance == null || !GameManager.Instance.isSpawning)
-       //     return;
-
+        /*   if (GameManager.Instance == null || !GameManager.Instance.isSpawning)
+               return; */
         // クールダウン中は配置できない
         if (isOnCooldown)
             return;
@@ -112,8 +116,6 @@ public class PlayerUnit : MonoBehaviour
         }
     }
 
-
-
     private IEnumerator PlaceWithGuard(Vector3Int gridPos, bool isHighWay)
     {
         isPlacing = true;
@@ -121,6 +123,21 @@ public class PlayerUnit : MonoBehaviour
         if (selectedUnitData == null)
         {
             Debug.Log("Unitが選択されていません");
+            isPlacing = false;
+            yield break;
+        }
+
+        //配置制限チェックを追加
+        if (isHighWay && !selectedUnitData.canPlaceHighWay)
+        {
+            Debug.LogWarning($"{selectedUnitData.name} は高台に配置できません。");
+            isPlacing = false;
+            yield break;
+        }
+
+        if (!isHighWay && !selectedUnitData.canPlaceWay)
+        {
+            Debug.LogWarning($"{selectedUnitData.name} は地上に配置できません。");
             isPlacing = false;
             yield break;
         }
@@ -147,7 +164,6 @@ public class PlayerUnit : MonoBehaviour
         // ここでも登録を試みる（他の生成経路からの生成でも一元管理できる）
         if (!RegisterPlacedUnit(unit))
         {
-            Debug.Log("登録に失敗したため生成したユニットを破棄します（上限超過）");
             Destroy(unit);
             isPlacing = false;
             yield break;
@@ -302,4 +318,55 @@ public class PlayerUnit : MonoBehaviour
 
         Debug.Log($"ユニットが破壊されました。現在の配置数: {placedUnits.Count}/{maxUnits}");
     }
+
+    // --- 配置可能マスを青く光らせる処理 ---
+    private void ShowPlacementHighlights()
+    {
+        if (selectedUnitData == null || highlightTilemap == null || highlightTile == null)
+            return;
+
+        // まず既存ハイライトを消去
+        ClearHighlights();
+
+        // 高台のみ配置可能
+        if (selectedUnitData.canPlaceOnHighWay && !selectedUnitData.canPlaceOnWay)
+        {
+            foreach (var pos in highWayTilemap.cellBounds.allPositionsWithin)
+            {
+                if (highWayTilemap.HasTile(pos) && !occupiedCells.Contains(pos))
+                    highlightTilemap.SetTile(pos, highlightTile);
+            }
+        }
+        // 地上のみ配置可能
+        else if (!selectedUnitData.canPlaceOnHighWay && selectedUnitData.canPlaceOnWay)
+        {
+            foreach (var pos in wayTilemap.cellBounds.allPositionsWithin)
+            {
+                if (wayTilemap.HasTile(pos) && !occupiedCells.Contains(pos))
+                    highlightTilemap.SetTile(pos, highlightTile);
+            }
+        }
+        // 両方配置可能
+        else if (selectedUnitData.canPlaceOnHighWay && selectedUnitData.canPlaceOnWay)
+        {
+            foreach (var pos in wayTilemap.cellBounds.allPositionsWithin)
+            {
+                if (wayTilemap.HasTile(pos) && !occupiedCells.Contains(pos))
+                    highlightTilemap.SetTile(pos, highlightTile);
+            }
+            foreach (var pos in highWayTilemap.cellBounds.allPositionsWithin)
+            {
+                if (highWayTilemap.HasTile(pos) && !occupiedCells.Contains(pos))
+                    highlightTilemap.SetTile(pos, highlightTile);
+            }
+        }
+    }
+
+    // --- ハイライトを全て消す ---
+    private void ClearHighlights()
+    {
+        if (highlightTilemap != null)
+            highlightTilemap.ClearAllTiles();
+    }
+
 }

@@ -18,5 +18,8 @@ public class UnitSetting : ScriptableObject
         public float attackRange; // 攻撃範囲
         public GameObject unitPrefab;//ユニット専用Prefab
         public int blockCount = 1;//ブロック可能数
+        [Header("配置タイプ設定")]
+        public bool canPlaceWay = true;      // 地上に設置可能
+        public bool canPlaceHighWay = false; // 高台に設置可能
     }
 }

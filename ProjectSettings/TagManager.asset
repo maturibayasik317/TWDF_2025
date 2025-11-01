@@ -16,7 +16,7 @@ TagManager:
   - HighWay
   - Object
   - Enemy
-  - 
+  - HighlightTilemap
   - 
   - 
   - 
@@ -47,6 +47,9 @@ TagManager:
     locked: 0
   - name: HighWay
     uniqueID: 1936340681
+    locked: 0
+  - name: HighlightTilemap
+    uniqueID: 2210567079
     locked: 0
   - name: Object
     uniqueID: 2652366079

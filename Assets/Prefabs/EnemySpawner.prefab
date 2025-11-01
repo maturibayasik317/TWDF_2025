@@ -46,5 +46,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyPrefab: {fileID: 1067056103824973720, guid: ffa35e500d6866148850c7e3d122cd01, type: 3}
   pathDataArray:
-  - {fileID: 8445785472644038431, guid: 4e453dc720797114f859ba811568c7f5, type: 3}
-  gameManager: {fileID: 0}
+  - {fileID: 396881115075006662, guid: 00385ba71d8af3e4682a32601a16c1f7, type: 3}
+  - {fileID: 1543560022012269532, guid: 797a3e09fb7a24e4e91a68198bf8d317, type: 3}
+  gameManager: {fileID: 7677180697231302783, guid: 024b775f45cd4a84c8a34e9258cd43b8, type: 3}
