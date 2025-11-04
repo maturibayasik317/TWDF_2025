@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: mapTile_187
   m_EditorClassIdentifier: 
   m_Sprite: {fileID: 21300000, guid: c8a2ab41bf867754584c7db9d16eaa6b, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.6039216}
   m_Transform:
     e00: 1
     e01: 0

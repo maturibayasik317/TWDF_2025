@@ -192,6 +192,8 @@ public class PlayerUnit : MonoBehaviour
         //配置完了後にインターバル開始
         isOnCooldown = true;
         placementTimer = placementCooldown;
+        // 配置完了後、ハイライトを消去
+        ClearHighlights();
         Debug.Log($"ユニット配置後クールダウン開始: {placementCooldown}秒");
 
         //クールダウンUI更新
@@ -287,7 +289,10 @@ public class PlayerUnit : MonoBehaviour
     {
         selectedUnitData = DBManager.instance.unitSetting.UnitDataList[index];
         Debug.Log($"{selectedUnitData.name} を選択");
+        // ハイライト表示
+        ShowPlacementHighlights();
     }
+
 
     // occupiedCells の解放（UnitBlock から呼べる公開メソッド）
     public void FreeOccupiedCell(Vector3Int cell)
@@ -319,7 +324,7 @@ public class PlayerUnit : MonoBehaviour
         Debug.Log($"ユニットが破壊されました。現在の配置数: {placedUnits.Count}/{maxUnits}");
     }
 
-    // --- 配置可能マスを青く光らせる処理 ---
+    //配置可能マスを青く光らせる処理
     private void ShowPlacementHighlights()
     {
         if (selectedUnitData == null || highlightTilemap == null || highlightTile == null)
@@ -329,7 +334,7 @@ public class PlayerUnit : MonoBehaviour
         ClearHighlights();
 
         // 高台のみ配置可能
-        if (selectedUnitData.canPlaceOnHighWay && !selectedUnitData.canPlaceOnWay)
+        if (selectedUnitData.canPlaceHighWay && !selectedUnitData.canPlaceWay)
         {
             foreach (var pos in highWayTilemap.cellBounds.allPositionsWithin)
             {
@@ -338,7 +343,7 @@ public class PlayerUnit : MonoBehaviour
             }
         }
         // 地上のみ配置可能
-        else if (!selectedUnitData.canPlaceOnHighWay && selectedUnitData.canPlaceOnWay)
+        else if (!selectedUnitData.canPlaceHighWay && selectedUnitData.canPlaceWay)
         {
             foreach (var pos in wayTilemap.cellBounds.allPositionsWithin)
             {
@@ -347,7 +352,7 @@ public class PlayerUnit : MonoBehaviour
             }
         }
         // 両方配置可能
-        else if (selectedUnitData.canPlaceOnHighWay && selectedUnitData.canPlaceOnWay)
+        else if (selectedUnitData.canPlaceHighWay && selectedUnitData.canPlaceWay)
         {
             foreach (var pos in wayTilemap.cellBounds.allPositionsWithin)
             {
@@ -362,7 +367,7 @@ public class PlayerUnit : MonoBehaviour
         }
     }
 
-    // --- ハイライトを全て消す ---
+    //ハイライトを全て消す
     private void ClearHighlights()
     {
         if (highlightTilemap != null)

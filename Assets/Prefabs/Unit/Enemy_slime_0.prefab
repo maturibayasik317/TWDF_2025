@@ -162,7 +162,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1642601217
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 2
   m_Sprite: {fileID: 368543389579951487, guid: e1dd212c68f990749bf8083c1dfe5914, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -209,7 +209,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2579b8ae82bb3a24f9b78a98740abf40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pathData: {fileID: 8445785472644038431, guid: 4e453dc720797114f859ba811568c7f5, type: 3}
   speed: 2
   maxHp: 3
   hp: 0
@@ -276,7 +275,7 @@ CircleCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0

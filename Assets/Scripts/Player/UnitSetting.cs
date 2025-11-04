@@ -13,6 +13,7 @@ public class UnitSetting : ScriptableObject
     {
         public string id;   // ID
         public string name; // –¼‘O
+        public int maxHp = 5;//HP
         public int attackPower; // UŒ‚—Í
         public float attackInterval; // UŒ‚ŠÔŠu
         public float attackRange; // UŒ‚”ÍˆÍ

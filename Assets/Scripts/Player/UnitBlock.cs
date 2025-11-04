@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections.Generic;
 using System;
 
@@ -8,8 +8,9 @@ public class UnitBlock : MonoBehaviour
     private int hp;
     [SerializeField] private int blockCount = 2;
     private List<EnemyController> blockingEnemies = new List<EnemyController>();
+    public event Action<int, int> OnHpChanged;
 
-    public Vector3Int placedCell; // PlayerUnit ‚ªİ’è‚·‚é ”j‰ó’Ê’m
+    public Vector3Int placedCell; // PlayerUnit ãŒè¨­å®šã™ã‚‹ ç ´å£Šé€šçŸ¥
     public event Action<UnitBlock> OnUnitDestroyed;
 
     private bool registeredToPlayer = false;
@@ -18,7 +19,7 @@ public class UnitBlock : MonoBehaviour
     {
         hp = maxHp;
 
-        // PlayerUnit ‚ªƒVƒ“ƒOƒ‹ƒgƒ“‚É‚È‚Á‚Ä‚¢‚ê‚Î©“®“o˜^‚ğ‚İ‚é
+        // PlayerUnit ãŒã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³ã«ãªã£ã¦ã„ã‚Œã°è‡ªå‹•ç™»éŒ²ã‚’è©¦ã¿ã‚‹
         if (PlayerUnit.Instance != null)
         {
             registeredToPlayer = PlayerUnit.Instance.RegisterPlacedUnit(gameObject);
@@ -30,12 +31,18 @@ public class UnitBlock : MonoBehaviour
         }
     }
 
-    // Data‚©‚ç‰Šú‰»iPlayerUnit‚©‚çŒÄ‚Ôj
+    // Dataã‹ã‚‰åˆæœŸåŒ–ï¼ˆPlayerUnitã‹ã‚‰å‘¼ã¶ï¼‰
     public void Initialize(UnitSetting.UnitData data)
     {
         if (data != null)
         {
             blockCount = Mathf.Max(0, data.blockCount);
+
+            // ğŸ†• HPã‚’å€‹åˆ¥è¨­å®š
+            maxHp = Mathf.Max(1, data.maxHp);
+            hp = maxHp;
+
+            Debug.Log($"{gameObject.name} åˆæœŸHP: {hp}");
         }
     }
 
@@ -54,14 +61,14 @@ public class UnitBlock : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // blockingEnemies‚Ì‹ó‚«‚ğƒ`ƒFƒbƒN
+        // blockingEnemiesã®ç©ºãã‚’ãƒã‚§ãƒƒã‚¯
         if (blockingEnemies.Count < blockCount && collision.TryGetComponent(out EnemyController enemy))
         {
             if (!blockingEnemies.Contains(enemy))
             {
                 blockingEnemies.Add(enemy);
                 enemy.OnBlocked(this);
-                // EnemyController‘¤‚É©•ª‚ğ’Ê’miŒ‚”j‚ÉŒÄ‚Ño‚µ‚Ä‚à‚ç‚¤j
+                // EnemyControllerå´ã«è‡ªåˆ†ã‚’é€šçŸ¥ï¼ˆæ’ƒç ´æ™‚ã«å‘¼ã³å‡ºã—ã¦ã‚‚ã‚‰ã†ï¼‰
                 enemy.OnDestroyedByBlock += OnEnemyDestroyed;
             }
         }
@@ -69,7 +76,7 @@ public class UnitBlock : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        // “G‚ª”ÍˆÍŠO‚Öo‚½‚Æ‚«‚à‰ğœi•K—v‚È‚çj
+        // æ•µãŒç¯„å›²å¤–ã¸å‡ºãŸã¨ãã‚‚è§£é™¤ï¼ˆå¿…è¦ãªã‚‰ï¼‰
         if (collision.TryGetComponent(out EnemyController enemy) && blockingEnemies.Contains(enemy))
         {
             blockingEnemies.Remove(enemy);
@@ -87,20 +94,20 @@ public class UnitBlock : MonoBehaviour
         }
     }
 
-    // ƒ†ƒjƒbƒgŒ‚”j‚ÉŒÄ‚ÔiDestroy’¼‘Oj
+    // ãƒ¦ãƒ‹ãƒƒãƒˆæ’ƒç ´æ™‚ã«å‘¼ã¶ï¼ˆDestroyç›´å‰ï¼‰
     private void OnDestroy()
     {
-        // ƒ‹[ƒv’†‚ÉƒRƒŒƒNƒVƒ‡ƒ“‚ğ•ÏX‚µ‚È‚¢‚æ‚¤ ToArray ‚ÅƒRƒs[‚µ‚Ä—ñ‹“‚·‚é
+        // ãƒ«ãƒ¼ãƒ—ä¸­ã«ã‚³ãƒ¬ã‚¯ã‚·ãƒ§ãƒ³ã‚’å¤‰æ›´ã—ãªã„ã‚ˆã† ToArray ã§ã‚³ãƒ”ãƒ¼ã—ã¦åˆ—æŒ™ã™ã‚‹
         foreach (var enemy in blockingEnemies.ToArray())
         {
             if (enemy != null)
             {
                 enemy.OnReleased();
-                // ƒCƒxƒ“ƒg‚ª“o˜^‚³‚ê‚Ä‚¢‚ê‚Î‰ğœ‚·‚éiˆÀ‘S‚Ì‚½‚ß try-unsubscribej
+                // ã‚¤ãƒ™ãƒ³ãƒˆãŒç™»éŒ²ã•ã‚Œã¦ã„ã‚Œã°è§£é™¤ã™ã‚‹ï¼ˆå®‰å…¨ã®ãŸã‚ try-unsubscribeï¼‰
                 enemy.OnDestroyedByBlock -= OnEnemyDestroyed;
             }
         }
-        // PlayerUnit ‚É©•ª‚Ì“o˜^‰ğœ‚ğˆË—Š
+        // PlayerUnit ã«è‡ªåˆ†ã®ç™»éŒ²è§£é™¤ã‚’ä¾é ¼
         if (PlayerUnit.Instance != null && registeredToPlayer)
         {
             PlayerUnit.Instance.UnregisterPlacedUnit(gameObject);
@@ -118,23 +125,21 @@ public class UnitBlock : MonoBehaviour
         }
     }
 
-    // “G‚©‚çƒ_ƒ[ƒW‚ğó‚¯‚é
+    // æ•µã‹ã‚‰ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ã‚‹
     public void TakeDamage(int damage)
     {
         hp -= damage;
-        Debug.Log($"{gameObject.name} c‚èHP: {hp}");
+        OnHpChanged?.Invoke(hp, maxHp); // ğŸ†• HPå¤‰åŒ–ã‚’é€šçŸ¥
+        Debug.Log($"{gameObject.name} æ®‹ã‚ŠHP: {hp}");
+
         if (hp <= 0)
         {
-            // e‘¤‚Ö’Ê’m‚µ‚Ä“o˜^‰ğœ
             OnUnitDestroyed?.Invoke(this);
-
-            // PlayerUnit ‚Ö‚à“o˜^‰ğœ‚ğ—Š‚Ş
             if (PlayerUnit.Instance != null && registeredToPlayer)
             {
                 PlayerUnit.Instance.UnregisterPlacedUnit(gameObject);
                 PlayerUnit.Instance.FreeOccupiedCell(placedCell);
             }
-
             Destroy(gameObject);
         }
     }
@@ -144,7 +149,7 @@ public class UnitBlock : MonoBehaviour
         get { return blockingEnemies.Count; }
     }
 
-    /// ‚±‚Ìƒ†ƒjƒbƒg‚ÌƒuƒƒbƒN‰Â”\”iŠO•”Šm”F—pj
+    /// ã“ã®ãƒ¦ãƒ‹ãƒƒãƒˆã®ãƒ–ãƒ­ãƒƒã‚¯å¯èƒ½æ•°ï¼ˆå¤–éƒ¨ç¢ºèªç”¨ï¼‰
     public int BlockCapacity
     {
         get { return blockCount; }
