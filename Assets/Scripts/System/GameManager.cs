@@ -86,12 +86,6 @@ public class GameManager : MonoBehaviour
         spawnedEnemyCount = 0;
         aliveEnemyCount = 0;
 
-        // ユニット配置を許可（PlayerUnit が存在する場合）
-        if (PlayerUnit.Instance != null)
-        {
-            PlayerUnit.Instance.SetAllowPlacement(true);
-        }
-
         StartCoroutine(StartCountdown());
     }
 
@@ -191,6 +185,13 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.LogWarning("stageClearObject が Inspector に設定されていません。");
+        }
+
+        // ここで StageFlowManager（強化/次ステージ制御）へ処理を渡す
+        if (StageFlowManager.Instance != null)
+        {
+            // StageFlowManager は StageClear 表示は行わないため、強化パネルを開く等のフロー開始を依頼する
+            StageFlowManager.Instance.StartUpgradeFlow();
         }
     }
 

@@ -36,10 +36,8 @@ public class PlayerUnit : MonoBehaviour
     private UnitSetting.UnitData selectedUnitData = null; //選択されたUnitのデータ
     private bool isPlacing = false; //多重配置防止
 
-    public event Action<int, int> OnPlacedCountChanged;
-    // 現在の設置数を外部参照できるプロパティ
-    public int CurrentPlacedCount => placedUnits.Count;
-    // 最大設置数を外部参照できるプロパティ
+    public event Action<int, int> OnPlacedCountChanged;// 現在の設置数を外部参照できるプロパティ
+    public int CurrentPlacedCount => placedUnits.Count;// 最大設置数を外部参照できるプロパティ
 
     private bool allowPlacement = false; 
     public bool AllowPlacement => allowPlacement;
@@ -50,7 +48,8 @@ public class PlayerUnit : MonoBehaviour
         Debug.Log($"PlayerUnit: AllowPlacement set to {allowed}");
     }
 
-
+    // 保存しておくベース値（強化適用時に元値 + RogueProgress）
+    private int baseMaxUnits;
     public int MaxUnits => maxUnits;
 
     private void Awake()
@@ -62,6 +61,12 @@ public class PlayerUnit : MonoBehaviour
             return;
         }
         Instance = this;
+
+        // base の保存（Inspectorで設定した値）
+        baseMaxUnits = maxUnits;
+
+        // シーンロード直後に永続強化を反映
+        ApplyPersistentUpgrades();
     }
 
     void Update()
@@ -176,7 +181,7 @@ public class PlayerUnit : MonoBehaviour
             unitAttck.InitializeUnit(selectedUnitData);
         }
 
-        // UnitBlock があれば初期化（blockCount等）
+        // UnitBlock が初期化（blockCount等）
         UnitBlock unitBlock = unit.GetComponent<UnitBlock>();
         if (unitBlock != null)
         {
@@ -271,6 +276,7 @@ public class PlayerUnit : MonoBehaviour
         if (placedUnits.Contains(unit)) return true; // 既に登録済みなら成功扱い
         placedUnits.Add(unit);
         Debug.Log($"ユニット登録: {unit.name} 現在数 {placedUnits.Count}/{maxUnits}");
+        OnPlacedCountChanged?.Invoke(placedUnits.Count, maxUnits);
         return true;
     }
 
@@ -322,6 +328,7 @@ public class PlayerUnit : MonoBehaviour
         placedUnits.Remove(unitBlock.gameObject);
 
         Debug.Log($"ユニットが破壊されました。現在の配置数: {placedUnits.Count}/{maxUnits}");
+        OnPlacedCountChanged?.Invoke(placedUnits.Count, maxUnits);
     }
 
     //配置可能マスを青く光らせる処理
@@ -374,4 +381,31 @@ public class PlayerUnit : MonoBehaviour
             highlightTilemap.ClearAllTiles();
     }
 
+    // シーン遷移時に既存配置をすべて破壊して内部状態をリセットする
+    public void ClearAllUnits()
+    {
+        var copy = new List<GameObject>(placedUnits);
+        foreach (var go in copy)
+        {
+            if (go != null)
+            {
+                Destroy(go);
+            }
+        }
+        placedUnits.Clear();
+        occupiedCells.Clear();
+        OnPlacedCountChanged?.Invoke(placedUnits.Count, MaxUnits);
+    }
+
+    // RogueProgress に蓄積された永続強化を反映する（最大配置数など）。
+    // StageFlowManager が新シーンロード直後に呼ぶことを想定しています。
+    public void ApplyPersistentUpgrades()
+    {
+        if (RogueProgress.Instance == null) return;
+        // baseMaxUnits に追加分を加える
+        maxUnits = baseMaxUnits + RogueProgress.Instance.AdditionalMaxUnits;
+        Debug.Log($"PlayerUnit: ApplyPersistentUpgrades -> maxUnits = {maxUnits} (base {baseMaxUnits} + add {RogueProgress.Instance.AdditionalMaxUnits})");
+
+        // （拡張）Unit の HP / 攻撃力ボーナスは UnitBlock/UnitAttck 側で反映する方が良いです。
+    }
 }
