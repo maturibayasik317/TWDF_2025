@@ -61,12 +61,6 @@ public class PlayerUnit : MonoBehaviour
             return;
         }
         Instance = this;
-
-        // base の保存（Inspectorで設定した値）
-        baseMaxUnits = maxUnits;
-
-        // シーンロード直後に永続強化を反映
-        ApplyPersistentUpgrades();
     }
 
     void Update()
@@ -395,17 +389,5 @@ public class PlayerUnit : MonoBehaviour
         placedUnits.Clear();
         occupiedCells.Clear();
         OnPlacedCountChanged?.Invoke(placedUnits.Count, MaxUnits);
-    }
-
-    // RogueProgress に蓄積された永続強化を反映する（最大配置数など）。
-    // StageFlowManager が新シーンロード直後に呼ぶことを想定しています。
-    public void ApplyPersistentUpgrades()
-    {
-        if (RogueProgress.Instance == null) return;
-        // baseMaxUnits に追加分を加える
-        maxUnits = baseMaxUnits + RogueProgress.Instance.AdditionalMaxUnits;
-        Debug.Log($"PlayerUnit: ApplyPersistentUpgrades -> maxUnits = {maxUnits} (base {baseMaxUnits} + add {RogueProgress.Instance.AdditionalMaxUnits})");
-
-        // （拡張）Unit の HP / 攻撃力ボーナスは UnitBlock/UnitAttck 側で反映する方が良いです。
     }
 }

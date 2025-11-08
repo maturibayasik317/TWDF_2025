@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -28,7 +29,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject gameOverObject; // ゲームオーバーUI追加
     [SerializeField] private TextMeshProUGUI countdownText;
 
+    [Header("Stage -> Next Scene")]
+    [Tooltip("ステージクリア時に表示する NEXT ボタン (StageClear UI の子でも可)")]
+    [SerializeField] private GameObject nextButtonObject;
+    [Tooltip("次のシーンをビルドインデックスで進めるなら true。false の場合 nextSceneName を使う")]
+    [SerializeField] private bool useBuildIndexForNext = true;
+    [Tooltip("useBuildIndexForNext が false の場合の次のシーン名")]
+    [SerializeField] private string nextSceneName = "Scene2";
+
     private bool isGameOver = false; // ゲームオーバー判定フラグ
+    private Coroutine spawningCoroutine;
     void Awake()
     {
         // シングルトン初期化
@@ -47,14 +57,14 @@ public class GameManager : MonoBehaviour
         if (gameOverObject != null)
             gameOverObject.SetActive(false);
         if (countdownText != null)
-            countdownText.gameObject.SetActive(false); 
+            countdownText.gameObject.SetActive(false);
+        if (nextButtonObject != null)
+            nextButtonObject.SetActive(false);
     }
 
     void Start()
     {
     }
-
-
 
     // フレームレートを固定
     private void FixFrameRate()
@@ -81,8 +91,10 @@ public class GameManager : MonoBehaviour
         isGameStarted = true;
         isSpawning = false;
         startButtonObject.SetActive(false); // ← ボタンを非表示
-        StartCoroutine(enemySpawner.ManageSpawning());
-
+        if (enemySpawner != null)
+        {
+            spawningCoroutine = StartCoroutine(enemySpawner.ManageSpawning());
+        }
         spawnedEnemyCount = 0;
         aliveEnemyCount = 0;
 
@@ -120,6 +132,8 @@ public class GameManager : MonoBehaviour
 
         if (enemySpawner != null)
         {
+            if (spawningCoroutine != null)
+                StopCoroutine(spawningCoroutine);
             StartCoroutine(enemySpawner.ManageSpawning());
         }
 
@@ -186,14 +200,87 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogWarning("stageClearObject が Inspector に設定されていません。");
         }
-
-        // ここで StageFlowManager（強化/次ステージ制御）へ処理を渡す
-        if (StageFlowManager.Instance != null)
-        {
-            // StageFlowManager は StageClear 表示は行わないため、強化パネルを開く等のフロー開始を依頼する
-            StageFlowManager.Instance.StartUpgradeFlow();
-        }
     }
+
+    // NEXT ボタンにアタッチするか、ボタンの OnClick に直接設定するメソッド
+    public void OnNextButtonPressed()
+    {
+        // ボタン連打防止
+        if (nextButtonObject != null)
+            nextButtonObject.SetActive(false);
+
+        // シーン移動を開始
+        StartCoroutine(LoadNextSceneRoutine());
+    }
+
+    // 次のシーンをロードする（非同期、フェードやロード画面をここで追加できます）
+    private IEnumerator LoadNextSceneRoutine()
+    {
+        // オプション: フェードアウト等をここで待つ
+        // yield return StartCoroutine(FadeOutRoutine());
+
+        string toLoad = "";
+
+        if (useBuildIndexForNext)
+        {
+            int current = SceneManager.GetActiveScene().buildIndex;
+            int nextIndex = current + 1;
+
+            if (nextIndex >= SceneManager.sceneCountInBuildSettings)
+            {
+                Debug.LogWarning("次のシーンがビルド設定に存在しません。MainMenuに戻ります。");
+                // 末尾ならメインメニューに戻す、名前はプロジェクトに合わせて変更
+                SceneManager.LoadScene("MainMenu");
+                yield break;
+            }
+            else
+            {
+                Debug.Log("Loading next scene by build index: " + nextIndex);
+                AsyncOperation op = SceneManager.LoadSceneAsync(nextIndex);
+                op.allowSceneActivation = true;
+                while (!op.isDone)
+                    yield return null;
+            }
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(nextSceneName))
+            {
+                Debug.LogError("nextSceneName が空です。ビルドインデックス方式を使うか、名前を設定してください。");
+                yield break;
+            }
+
+            Debug.Log("Loading next scene by name: " + nextSceneName);
+            AsyncOperation op = SceneManager.LoadSceneAsync(nextSceneName);
+            op.allowSceneActivation = true;
+            while (!op.isDone)
+                yield return null;
+        }
+
+        // ここに来たら新しいシーンがロード済み
+        // 必要なら GameManager の状態をリセットする（新しいステージで継続する場合）
+        ResetForNewScene();
+    }
+
+    private void ResetForNewScene()
+    {
+        // 新しいシーンで GameManager を残す場合は状態を初期化
+        isGameStarted = false;
+        isSpawning = false;
+        isGameOver = false;
+        spawnedEnemyCount = 0;
+        aliveEnemyCount = 0;
+
+        if (stageClearObject != null)
+            stageClearObject.SetActive(false);
+        if (gameOverObject != null)
+            gameOverObject.SetActive(false);
+        if (nextButtonObject != null)
+            nextButtonObject.SetActive(false);
+        if (startButtonObject != null)
+            startButtonObject.SetActive(true);
+    }
+
 
     public void GameOver()
     {
