@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine.SceneManagement;
 
@@ -39,6 +38,7 @@ public class GameManager : MonoBehaviour
 
     private bool isGameOver = false; // ゲームオーバー判定フラグ
     private Coroutine spawningCoroutine;
+
     void Awake()
     {
         // シングルトン初期化
@@ -58,6 +58,7 @@ public class GameManager : MonoBehaviour
             gameOverObject.SetActive(false);
         if (countdownText != null)
             countdownText.gameObject.SetActive(false);
+        // nextButtonObject を Inspector で割り当てている想定：初期は非表示にしておく
         if (nextButtonObject != null)
             nextButtonObject.SetActive(false);
     }
@@ -90,11 +91,11 @@ public class GameManager : MonoBehaviour
         if (isGameStarted) return;
         isGameStarted = true;
         isSpawning = false;
-        startButtonObject.SetActive(false); // ← ボタンを非表示
-        if (enemySpawner != null)
-        {
-            spawningCoroutine = StartCoroutine(enemySpawner.ManageSpawning());
-        }
+
+        // 注意: ManageSpawning は BeginBattle() で開始するようにしました。
+        // StartGame 内で先に StartCoroutine してしまうと、カウントダウン前にスポーンが始まる等、
+        // 状態判定がずれる原因になります。
+
         spawnedEnemyCount = 0;
         aliveEnemyCount = 0;
 
@@ -132,9 +133,10 @@ public class GameManager : MonoBehaviour
 
         if (enemySpawner != null)
         {
+            // 既に同じコルーチンが動いている可能性があれば停止してから再開
             if (spawningCoroutine != null)
                 StopCoroutine(spawningCoroutine);
-            StartCoroutine(enemySpawner.ManageSpawning());
+            spawningCoroutine = StartCoroutine(enemySpawner.ManageSpawning());
         }
 
         // ユニット配置を許可
@@ -163,6 +165,8 @@ public class GameManager : MonoBehaviour
     // 敵の情報をListに追加
     public void AddEnemyToList()
     {
+        // 注意: このメソッドが RegisterSpawnedEnemy と併用されると spawnedEnemyCount が二重増加する可能性があります。
+        // 必要なら整理してください（例: AddEnemyToList を使わない、または RegisterSpawnedEnemy に統一する）。
         spawnedEnemyCount++; // 生成した敵の数を増やす
     }
 
@@ -172,14 +176,17 @@ public class GameManager : MonoBehaviour
         if (spawnedEnemyCount >= maxSpawnCount)
         {
             isSpawning = false;
+            Debug.Log($"CheckSpawnLimit: reached max. spawned={spawnedEnemyCount} max={maxSpawnCount}");
         }
     }
 
     // ステージクリア判定（スポーン終了かつ生存敵0）
     public void CheckStageClear()
     {
-       // ゲームオーバー中は処理しない
+        // ゲームオーバー中は処理しない
         if (isGameOver) return;
+
+        Debug.Log($"CheckStageClear: isSpawning={isSpawning} spawned={spawnedEnemyCount} max={maxSpawnCount} alive={aliveEnemyCount}");
 
         // spawnedEnemyCount >= maxSpawnCount を見ることでスポーンが全て終わっているか確認する
         if (!isSpawning && spawnedEnemyCount >= maxSpawnCount && aliveEnemyCount <= 0)
@@ -192,6 +199,17 @@ public class GameManager : MonoBehaviour
     private void ShowStageClear()
     {
         Debug.Log("GameManager: Stage Clear!");
+        // 敵や生成を確実に止めたい場合はスパナーに停止メソッドを実装して呼ぶのが確実
+        if (enemySpawner != null)
+        {
+            // EnemySpawner 側で StopSpawning() を提供しているなら呼ぶと良い
+            // enemySpawner.StopSpawning();
+        }
+
+        // ユニット配置を禁止
+        if (PlayerUnit.Instance != null)
+            PlayerUnit.Instance.SetAllowPlacement(false);
+
         if (stageClearObject != null)
         {
             stageClearObject.SetActive(true);
@@ -199,6 +217,30 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.LogWarning("stageClearObject が Inspector に設定されていません。");
+        }
+
+        // NEXTボタンを明示的に表示する（Inspectorに割り当てている想定）
+        if (nextButtonObject != null)
+        {
+            nextButtonObject.SetActive(true);
+            Debug.Log("Next button activated.");
+        }
+        else
+        {
+            // nextButtonObject が null の場合、stageClearObject の中に "Next" ボタンがあるか探してみる
+            if (stageClearObject != null)
+            {
+                var nextChild = stageClearObject.transform.Find("NextButton");
+                if (nextChild != null)
+                {
+                    nextChild.gameObject.SetActive(true);
+                    Debug.Log("Found NextButton as child of stageClearObject and activated it.");
+                }
+                else
+                {
+                    Debug.LogWarning("nextButtonObject が設定されていません。stageClearObject の子に 'NextButton' があるか確認してください。");
+                }
+            }
         }
     }
 
@@ -218,8 +260,6 @@ public class GameManager : MonoBehaviour
     {
         // オプション: フェードアウト等をここで待つ
         // yield return StartCoroutine(FadeOutRoutine());
-
-        string toLoad = "";
 
         if (useBuildIndexForNext)
         {
@@ -289,14 +329,6 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("GameManager: Game Over!");
         isSpawning = false; // 敵のスポーン停止
-
-        /* なぜか使えない？
-        // 全ての敵を止めたい場合（任意）
-        var enemies = FindObjectsOfType<EnemyController>();
-        foreach (var enemy in enemies)
-        {
-            enemy.StopAllCoroutines(); // 敵の行動停止（EnemyControllerがCoroutineを使っている場合）
-        }*/
 
         // GameOver UI表示
         if (gameOverObject != null)
