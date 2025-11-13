@@ -202,8 +202,6 @@ public class GameManager : MonoBehaviour
         // 敵や生成を確実に止めたい場合はスパナーに停止メソッドを実装して呼ぶのが確実
         if (enemySpawner != null)
         {
-            // EnemySpawner 側で StopSpawning() を提供しているなら呼ぶと良い
-            // enemySpawner.StopSpawning();
         }
 
         // ユニット配置を禁止
@@ -217,6 +215,19 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.LogWarning("stageClearObject が Inspector に設定されていません。");
+        }
+
+        // 強化ポップアップを表示
+        if (UpgradeManager.Instance != null)
+        {
+            UpgradeManager.Instance.ShowUpgradePopup();
+        }
+        else
+        {
+            Debug.LogWarning("UpgradeManager.Instance が存在しません。");
+            // 強化なしでNEXTボタンだけ表示
+            if (nextButtonObject != null)
+                nextButtonObject.SetActive(true);
         }
 
         // NEXTボタンを明示的に表示する（Inspectorに割り当てている想定）
