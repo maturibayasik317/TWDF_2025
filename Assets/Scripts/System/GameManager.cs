@@ -30,7 +30,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Stage -> Next Scene")]
     [Tooltip("ステージクリア時に表示する NEXT ボタン (StageClear UI の子でも可)")]
-    [SerializeField] private GameObject nextButtonObject;
+    [SerializeField] public GameObject nextButtonObject;
     [Tooltip("次のシーンをビルドインデックスで進めるなら true。false の場合 nextSceneName を使う")]
     [SerializeField] private bool useBuildIndexForNext = true;
     [Tooltip("useBuildIndexForNext が false の場合の次のシーン名")]

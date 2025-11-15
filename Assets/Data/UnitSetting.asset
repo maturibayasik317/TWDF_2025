@@ -15,6 +15,7 @@ MonoBehaviour:
   UnitDataList:
   - id: 0
     name: Soldier
+    maxHp: 5
     attackPower: 1
     attackInterval: 90
     attackRange: 0.6
@@ -24,6 +25,7 @@ MonoBehaviour:
     canPlaceHighWay: 0
   - id: 1
     name: Warrior
+    maxHp: 5
     attackPower: 2
     attackInterval: 150
     attackRange: 0.6
@@ -33,6 +35,7 @@ MonoBehaviour:
     canPlaceHighWay: 0
   - id: 2
     name: Wizard
+    maxHp: 5
     attackPower: 3
     attackInterval: 90
     attackRange: 3

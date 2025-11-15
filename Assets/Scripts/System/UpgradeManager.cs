@@ -1,103 +1,93 @@
-using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
 using System.Collections.Generic;
-using System.Linq;
+using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
 
 public class UpgradeManager : MonoBehaviour
 {
     public static UpgradeManager Instance;
 
-    [Header("アップグレード設定")]
-    [SerializeField] private UpgradeDatabase upgradeDatabase;
-    [SerializeField] private GameObject upgradePopupUI;
-    [SerializeField] private Transform upgradeOptionParent;
-    [SerializeField] private GameObject upgradeButtonPrefab;
+    [Header("Upgrade UI")]
+    [SerializeField] private GameObject upgradeBar;
+    [SerializeField] private Button button01;
+    [SerializeField] private Button button02;
+    [SerializeField] private Button button03;
 
-    [Header("NEXTボタン")]
-    [SerializeField] private GameObject nextButtonObject;
+    [SerializeField] private TextMeshProUGUI text01;
+    [SerializeField] private TextMeshProUGUI text02;
+    [SerializeField] private TextMeshProUGUI text03;
 
-    private List<UpgradeData> currentOptions = new List<UpgradeData>();
+    [Header("設定")]
+    [SerializeField] private UnitSetting unitSetting; // ← 既存のデータ
+    [SerializeField] private List<UpgradeOption> upgradeOptions; // ScriptableObject を登録
 
-    private void Awake()
+    private UpgradeOption[] currentChosen = new UpgradeOption[3];
+    private bool upgraded = false;
+
+    void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
         Instance = this;
-
-        if (upgradePopupUI != null)
-            upgradePopupUI.SetActive(false);
+        upgradeBar.SetActive(false);
     }
 
-    /// <summary>
-    /// ステージクリア時に呼ぶ
-    /// </summary>
+    // GameManager から呼ばれる
     public void ShowUpgradePopup()
     {
-        if (upgradeDatabase == null || upgradeDatabase.allUpgrades.Count == 0)
+        upgraded = false;
+
+        upgradeBar.SetActive(true);
+
+        PickRandomUpgrades();
+        ApplyUI();
+        LockNextButton();
+    }
+
+    private void PickRandomUpgrades()
+    {
+        List<UpgradeOption> list = new List<UpgradeOption>(upgradeOptions);
+        for (int i = 0; i < 3; i++)
         {
-            Debug.LogWarning("UpgradeDatabase が設定されていません。");
-            return;
-        }
-
-        // ポップアップを表示
-        upgradePopupUI.SetActive(true);
-
-        // NEXTボタンは非表示（選択後に表示）
-        if (nextButtonObject != null)
-            nextButtonObject.SetActive(false);
-
-        // 既存ボタン削除
-        foreach (Transform child in upgradeOptionParent)
-            Destroy(child.gameObject);
-
-        // ランダムに3つ抽出
-        currentOptions = upgradeDatabase.allUpgrades.OrderBy(x => Random.value).Take(3).ToList();
-
-        foreach (var option in currentOptions)
-        {
-            var buttonObj = Instantiate(upgradeButtonPrefab, upgradeOptionParent);
-            var text = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
-            if (text != null)
-                text.text = $"{option.upgradeName}\n<size=80%>{option.description}</size>";
-
-            var btn = buttonObj.GetComponent<Button>();
-            btn.onClick.AddListener(() => OnUpgradeSelected(option));
+            int r = Random.Range(0, list.Count);
+            currentChosen[i] = list[r];
+            list.RemoveAt(r);
         }
     }
 
-    private void OnUpgradeSelected(UpgradeData data)
+    private void ApplyUI()
     {
-        Debug.Log($"Upgrade Selected: {data.upgradeName}");
+        text01.text = currentChosen[0].description;
+        text02.text = currentChosen[1].description;
+        text03.text = currentChosen[2].description;
 
-        // 対応するユニットに反映
-        ApplyUpgradeToUnit(data);
+        button01.onClick.RemoveAllListeners();
+        button02.onClick.RemoveAllListeners();
+        button03.onClick.RemoveAllListeners();
 
-        // UIを閉じてNEXTボタンを有効化
-        upgradePopupUI.SetActive(false);
-        if (nextButtonObject != null)
-            nextButtonObject.SetActive(true);
+        button01.onClick.AddListener(() => SelectUpgrade(0));
+        button02.onClick.AddListener(() => SelectUpgrade(1));
+        button03.onClick.AddListener(() => SelectUpgrade(2));
     }
 
-    private void ApplyUpgradeToUnit(UpgradeData data)
+    private void SelectUpgrade(int index)
     {
-        var unitList = DBManager.instance.unitSetting.UnitDataList;
-        foreach (var unit in unitList)
-        {
-            if (unit.name == data.targetUnitName)
-            {
-                unit.attackPower += data.attackBonus;
-                // UnitBlockにHPを持たせているため、UnitDataにmaxHpを追加するならそちらも反映可
-                unit.blockCount += data.blockBonus;
+        if (upgraded) return; // 二重防止
+        upgraded = true;
 
-                Debug.Log($"強化適用: {unit.name} 攻撃+{data.attackBonus} HP+{data.hpBonus} Block+{data.blockBonus}");
-                return;
-            }
-        }
+        currentChosen[index].ApplyUpgrade(unitSetting);
 
-        Debug.LogWarning($"対象ユニット {data.targetUnitName} が見つかりませんでした。");
+        upgradeBar.SetActive(false);
+        UnlockNextButton();
+    }
+
+    private void LockNextButton()
+    {
+        if (GameManager.Instance.nextButtonObject != null)
+            GameManager.Instance.nextButtonObject.SetActive(false);
+    }
+
+    private void UnlockNextButton()
+    {
+        if (GameManager.Instance.nextButtonObject != null)
+            GameManager.Instance.nextButtonObject.SetActive(true);
     }
 }
