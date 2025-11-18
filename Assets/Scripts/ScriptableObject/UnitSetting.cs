@@ -22,5 +22,8 @@ public class UnitSetting : ScriptableObject
         [Header("配置タイプ設定")]
         public bool canPlaceWay = true;      // 地上に設置可能
         public bool canPlaceHighWay = false; // 高台に設置可能
+        [Header("強化管理")]
+        public int upgradeCount = 0;
+        public const int maxUpgradeCount = 3;
     }
 }

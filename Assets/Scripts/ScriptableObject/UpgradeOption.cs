@@ -1,4 +1,6 @@
 using UnityEngine;
+using static UnitSetting;
+using static UnityEngine.Rendering.DebugUI;
 
 [CreateAssetMenu(menuName = "Game/UpgradeOption")]
 public class UpgradeOption : ScriptableObject
@@ -12,17 +14,33 @@ public class UpgradeOption : ScriptableObject
     public int addBlock = 0;
 
     // 強化処理（永続）
-    public void ApplyUpgrade(UnitSetting unitSetting)
+    // 強化処理（永続）
+    public void ApplyUpgrade(UnitSetting setting)
     {
-        foreach (var unit in unitSetting.UnitDataList)
+        foreach (var data in setting.UnitDataList)
         {
-            if (unit.id == targetUnitId)
+            if (data.id == targetUnitId)
             {
-                unit.attackPower += addAttack;
-                unit.maxHp += addMaxHp;
-                unit.blockCount += addBlock;
+                if (data.upgradeCount >= UnitData.maxUpgradeCount)
+                {
+                    Debug.Log($"[{data.name}] は強化上限の {UnitData.maxUpgradeCount} に達しています。");
+                    return;
+                }
 
-                Debug.Log($"[Upgrade] {unit.name} 強化完了 → ATK:{unit.attackPower}  HP:{unit.maxHp}  BLOCK:{unit.blockCount}");
+                // 強化処理
+                if (addAttack != 0)
+                    data.attackPower += addAttack;
+
+                if (addMaxHp != 0)
+                    data.maxHp += addMaxHp;
+
+                if (addBlock != 0)
+                    data.blockCount += addBlock;
+
+                // 強化回数加算
+                data.upgradeCount++;
+
+                Debug.Log($"[{data.name}] 強化実行 → 現在 {data.upgradeCount} / {UnitData.maxUpgradeCount}");
             }
         }
     }

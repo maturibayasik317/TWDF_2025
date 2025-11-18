@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using static UnitSetting;
 
 public class UpgradeManager : MonoBehaviour
 {
     public static UpgradeManager Instance;
+    public int upgradeCount;
 
     [Header("Upgrade UI")]
     [SerializeField] private GameObject upgradeBar;
@@ -44,14 +46,36 @@ public class UpgradeManager : MonoBehaviour
 
     private void PickRandomUpgrades()
     {
-        List<UpgradeOption> list = new List<UpgradeOption>(upgradeOptions);
+        // 強化可能な Option のみ抽出
+        List<UpgradeOption> validList = new List<UpgradeOption>();
+
+        foreach (var option in upgradeOptions)
+        {
+            var unit = unitSetting.UnitDataList.Find(u => u.id == option.targetUnitId);
+
+            if (unit != null && unit.upgradeCount < UnitData.maxUpgradeCount)
+                validList.Add(option);
+        }
+
+        if (validList.Count == 0)
+        {
+            Debug.Log("強化可能なユニットが存在しません。UpgradeBar を表示しません。");
+            upgradeBar.SetActive(false);
+            UnlockNextButton();
+            return;
+        }
+
+        // 3つランダム選択
         for (int i = 0; i < 3; i++)
         {
-            int r = Random.Range(0, list.Count);
-            currentChosen[i] = list[r];
-            list.RemoveAt(r);
+            int r = Random.Range(0, validList.Count);
+            currentChosen[i] = validList[r];
+            validList.RemoveAt(r);
+
+            if (validList.Count == 0) break;
         }
     }
+
 
     private void ApplyUI()
     {
