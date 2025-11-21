@@ -11,11 +11,11 @@ public enum UpgradeType
 [CreateAssetMenu(menuName = "Game/UpgradeOption")]
 public class UpgradeOption : ScriptableObject
 {
-    public string upgradeId;
-    public string targetUnitId;
-    public string description;
+    public string upgradeId;      // 強化の識別ID
+    public string targetUnitId;   // 強化対象のユニット
+    public string description;    // UI説明文
 
-    public UpgradeType type;
+    public UpgradeType type;// 強化タイプ
     public int value = 1;  // 上昇量
 
     // ランタイムのみ強化
@@ -30,6 +30,7 @@ public class UpgradeOption : ScriptableObject
             return;
         }
 
+        // 強化（ランタイム値を変更）
         switch (type)
         {
             case UpgradeType.AttackUp:
