@@ -7,9 +7,6 @@ using System;
 
 public class EnemyController : MonoBehaviour
 {
-
-    /*[SerializeField, Header("移動経路の情報")]
-    private PathData pathData; */
     [SerializeField, Header("移動速度")]
     private float speed;
     [SerializeField, Header("最大HP")]
@@ -38,12 +35,10 @@ public class EnemyController : MonoBehaviour
         float moveDuration = totalDistance / speed;
         // 経路に沿って移動
      */
-
     }
 
     void Update()
     {
-        
     }
 
     // 敵データを初期化

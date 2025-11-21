@@ -25,5 +25,25 @@ public class UnitSetting : ScriptableObject
         [Header("ã≠âªä«óù")]
         public int upgradeCount = 0;
         public const int maxUpgradeCount = 3;
+        public int runtimeAttack;
+        public int runtimeMaxHp;
+        public int runtimeBlock;
+        
+        // èâä˙âª
+        public void InitializeRuntime()
+        {
+            runtimeAttack = attackPower;
+            runtimeMaxHp = maxHp;
+            runtimeBlock = blockCount;
+        }
+    }
+
+    public void InitializeRuntimeData()
+    {
+        foreach (var unit in UnitDataList)
+        {
+            unit.InitializeRuntime();
+            unit.upgradeCount = 0;
+        }
     }
 }

@@ -23,6 +23,7 @@ MonoBehaviour:
     blockCount: 2
     canPlaceWay: 1
     canPlaceHighWay: 0
+    upgradeCount: 0
   - id: 1
     name: Warrior
     maxHp: 5
@@ -33,6 +34,7 @@ MonoBehaviour:
     blockCount: 1
     canPlaceWay: 1
     canPlaceHighWay: 0
+    upgradeCount: 1
   - id: 2
     name: Wizard
     maxHp: 5
@@ -43,3 +45,4 @@ MonoBehaviour:
     blockCount: 0
     canPlaceWay: 0
     canPlaceHighWay: 1
+    upgradeCount: 0

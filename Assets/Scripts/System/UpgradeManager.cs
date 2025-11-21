@@ -32,6 +32,12 @@ public class UpgradeManager : MonoBehaviour
         upgradeBar.SetActive(false);
     }
 
+    void Start()
+    {
+        unitSetting.InitializeRuntimeData();
+    }
+
+
     // GameManager ‚©‚çŒÄ‚Î‚ê‚é
     public void ShowUpgradePopup()
     {

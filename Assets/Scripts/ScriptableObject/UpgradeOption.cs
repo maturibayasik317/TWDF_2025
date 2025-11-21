@@ -1,47 +1,52 @@
 using UnityEngine;
 using static UnitSetting;
-using static UnityEngine.Rendering.DebugUI;
+
+public enum UpgradeType
+{
+    AttackUp,
+    HpUp,
+    BlockUp
+}
 
 [CreateAssetMenu(menuName = "Game/UpgradeOption")]
 public class UpgradeOption : ScriptableObject
 {
-    public string upgradeId;      // 強化の識別ID
-    public string targetUnitId;   // 強化対象ユニットのID
-    public string description;    // UIに表示する説明文
+    public string upgradeId;
+    public string targetUnitId;
+    public string description;
 
-    public int addAttack = 0;
-    public int addMaxHp = 0;
-    public int addBlock = 0;
+    public UpgradeType type;
+    public int value = 1;  // 上昇量
 
-    // 強化処理（永続）
-    // 強化処理（永続）
+    // ランタイムのみ強化
     public void ApplyUpgrade(UnitSetting setting)
     {
-        foreach (var data in setting.UnitDataList)
+        UnitData data = setting.UnitDataList.Find(u => u.id == targetUnitId);
+        if (data == null) return;
+
+        if (data.upgradeCount >= UnitData.maxUpgradeCount)
         {
-            if (data.id == targetUnitId)
-            {
-                if (data.upgradeCount >= UnitData.maxUpgradeCount)
-                {
-                    Debug.Log($"[{data.name}] は強化上限の {UnitData.maxUpgradeCount} に達しています。");
-                    return;
-                }
-
-                // 強化処理
-                if (addAttack != 0)
-                    data.attackPower += addAttack;
-
-                if (addMaxHp != 0)
-                    data.maxHp += addMaxHp;
-
-                if (addBlock != 0)
-                    data.blockCount += addBlock;
-
-                // 強化回数加算
-                data.upgradeCount++;
-
-                Debug.Log($"[{data.name}] 強化実行 → 現在 {data.upgradeCount} / {UnitData.maxUpgradeCount}");
-            }
+            Debug.Log($"[{data.name}] は強化上限に達しています。");
+            return;
         }
+
+        switch (type)
+        {
+            case UpgradeType.AttackUp:
+                data.runtimeAttack += value;
+                break;
+
+            case UpgradeType.HpUp:
+                data.runtimeMaxHp += value;
+                break;
+
+            case UpgradeType.BlockUp:
+                data.runtimeBlock += value;
+                break;
+        }
+
+        data.upgradeCount++;
+
+        Debug.Log($"[{data.name}] を強化 → Attack:{data.runtimeAttack}  HP:{data.runtimeMaxHp} Block:{data.runtimeBlock}");
     }
 }
