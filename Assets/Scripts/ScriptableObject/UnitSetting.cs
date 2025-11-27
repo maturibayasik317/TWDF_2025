@@ -28,13 +28,21 @@ public class UnitSetting : ScriptableObject
         public int runtimeAttack;
         public int runtimeMaxHp;
         public int runtimeBlock;
-        
+        [Header("配置クールタイム")]
+        public float placementCooldownBase = 5f;  // ベースCT（5秒）
+        public float runtimePlacementCooldown = 0f; // 強化反映後の実CT
+        public float cooldownEndTime = 0f;         // next placement time
+
         // 初期化
         public void InitializeRuntime()
         {
             runtimeAttack = attackPower;
             runtimeMaxHp = maxHp;
             runtimeBlock = blockCount;
+
+            // 配置CT計算
+            runtimePlacementCooldown = placementCooldownBase + upgradeCount * 3f;
+            cooldownEndTime = 0f;
         }
     }
 

@@ -1,9 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using System;
-using TMPro;
+using UnityEngine.UIElements;
 
 public class PlayerUnit : MonoBehaviour
 {
@@ -22,16 +23,18 @@ public class PlayerUnit : MonoBehaviour
 
     [Header("Unit 設定")]
     [SerializeField] private int maxUnits = 5; // 最大配置数
-    [SerializeField] private float placementCooldown = 4f; // 配置インターバル（秒）
+  //  [SerializeField] private float placementCooldown = 4f; // 配置インターバル（秒）
 
 
     [Header("UI設定")]
     [SerializeField] private TextMeshProUGUI cooldownText;
 
-    private float placementTimer = 0f; //タイマー
-    private bool isOnCooldown = false; //クールダウン中フラグ
+    //private float placementTimer = 0f; //タイマー
+    //private bool isOnCooldown = false; //クールダウン中フラグ
     private List<GameObject> placedUnits = new List<GameObject>(); //配置中ユニット
     private HashSet<Vector3Int> occupiedCells = new HashSet<Vector3Int>(); //砲台配置済みセルを代入
+    //ユニット種類ごとのクールタイム管理
+    private Dictionary<string, float> unitCooldownEndTime = new Dictionary<string, float>();
 
     private UnitSetting.UnitData selectedUnitData = null; //選択されたUnitのデータ
     private bool isPlacing = false; //多重配置防止
@@ -46,6 +49,20 @@ public class PlayerUnit : MonoBehaviour
     {
         allowPlacement = allowed;
         Debug.Log($"PlayerUnit: AllowPlacement set to {allowed}");
+
+        if (allowed)
+        {
+            //ゲーム開始時：ユニットごとにCTを設定
+            foreach (var data in DBManager.instance.unitSetting.UnitDataList)
+            {
+                float ct = data.placementCooldownBase + data.upgradeCount * 3f;
+                data.runtimePlacementCooldown = ct;
+
+                unitCooldownEndTime[data.id] = Time.time + ct;
+
+                Debug.Log($"[{data.name}] 初期クールタイム開始 → {ct} 秒");
+            }
+        }
     }
 
     // 保存しておくベース値（強化適用時に元値 + RogueProgress）
@@ -65,7 +82,8 @@ public class PlayerUnit : MonoBehaviour
 
     void Update()
     {
-        // クールダウン更新（allowPlacement関係なく動作）
+        //古いクールダウンコード
+        /* クールダウン更新（allowPlacement関係なく動作）
         if (isOnCooldown)
         {
             placementTimer -= Time.deltaTime;
@@ -76,8 +94,8 @@ public class PlayerUnit : MonoBehaviour
                 Debug.Log("ユニット配置が再び可能になりました。");
             }
 
-            if (cooldownText != null)
-                cooldownText.text = $"次の配置まで：{placementTimer:F1} 秒";
+        if (cooldownText != null)
+           cooldownText.text = $"次の配置まで：{placementTimer:F1} 秒";
         }
         else
         {
@@ -88,12 +106,9 @@ public class PlayerUnit : MonoBehaviour
         // ここから下は allowPlacement が true でないと実行されない
         if (!allowPlacement)
             return;
-
-        /*   if (GameManager.Instance == null || !GameManager.Instance.isSpawning)
-               return; */
         // クールダウン中は配置できない
         if (isOnCooldown)
-            return;
+            return; */
 
         // 配置処理
         if (Input.GetMouseButtonDown(0) && !isPlacing)
@@ -187,8 +202,8 @@ public class PlayerUnit : MonoBehaviour
         occupiedCells.Add(gridPos);
         selectedUnitData = null;
         isPlacing = false;
-
-        //配置完了後にインターバル開始
+        //古いクールダウンコード
+        /*配置完了後にインターバル開始
         isOnCooldown = true;
         placementTimer = placementCooldown;
         // 配置完了後、ハイライトを消去
@@ -198,6 +213,14 @@ public class PlayerUnit : MonoBehaviour
         //クールダウンUI更新
         if (cooldownText != null)
             cooldownText.text = $"次の配置まで：{placementCooldown:F1} 秒";
+        */
+        //このユニット種類のクールタイムを再カウント
+        float ct = selectedUnitData.placementCooldownBase + selectedUnitData.upgradeCount * 3f;
+        selectedUnitData.runtimePlacementCooldown = ct;
+
+        unitCooldownEndTime[selectedUnitData.id] = Time.time + ct;
+
+        Debug.Log($"[{selectedUnitData.name}] 再配置クールタイム開始：{ct} 秒");
 
         yield break;
     }
@@ -288,8 +311,20 @@ public class PlayerUnit : MonoBehaviour
     public void SelectUnit(int index)
     {
         selectedUnitData = DBManager.instance.unitSetting.UnitDataList[index];
+
+        // ★ クールタイム中か確認
+        if (unitCooldownEndTime.TryGetValue(selectedUnitData.id, out float endTime))
+        {
+            float remaining = endTime - Time.time;
+            if (remaining > 0f)
+            {
+                Debug.Log($"{selectedUnitData.name} はクールタイム中：あと {remaining:F1} 秒");
+                selectedUnitData = null;
+                return;
+            }
+        }
+
         Debug.Log($"{selectedUnitData.name} を選択");
-        // ハイライト表示
         ShowPlacementHighlights();
     }
 
