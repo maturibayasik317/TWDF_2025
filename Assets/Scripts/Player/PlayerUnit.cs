@@ -26,15 +26,15 @@ public class PlayerUnit : MonoBehaviour
   //  [SerializeField] private float placementCooldown = 4f; // 配置インターバル（秒）
 
 
-    [Header("UI設定")]
+   /* [Header("UI設定")]
     [SerializeField] private TextMeshProUGUI cooldownText;
 
     //private float placementTimer = 0f; //タイマー
-    //private bool isOnCooldown = false; //クールダウン中フラグ
+    //private bool isOnCooldown = false; //クールダウン中フラグ */
     private List<GameObject> placedUnits = new List<GameObject>(); //配置中ユニット
     private HashSet<Vector3Int> occupiedCells = new HashSet<Vector3Int>(); //砲台配置済みセルを代入
     //ユニット種類ごとのクールタイム管理
-    private Dictionary<string, float> unitCooldownEndTime = new Dictionary<string, float>();
+    public Dictionary<string, float> unitCooldownEndTime = new Dictionary<string, float>();
 
     private UnitSetting.UnitData selectedUnitData = null; //選択されたUnitのデータ
     private bool isPlacing = false; //多重配置防止
@@ -200,8 +200,7 @@ public class PlayerUnit : MonoBehaviour
         }
 
         occupiedCells.Add(gridPos);
-        selectedUnitData = null;
-        isPlacing = false;
+
         //古いクールダウンコード
         /*配置完了後にインターバル開始
         isOnCooldown = true;
@@ -217,9 +216,10 @@ public class PlayerUnit : MonoBehaviour
         //このユニット種類のクールタイムを再カウント
         float ct = selectedUnitData.placementCooldownBase + selectedUnitData.upgradeCount * 3f;
         selectedUnitData.runtimePlacementCooldown = ct;
-
         unitCooldownEndTime[selectedUnitData.id] = Time.time + ct;
 
+        selectedUnitData = null;
+        isPlacing = false;
         Debug.Log($"[{selectedUnitData.name}] 再配置クールタイム開始：{ct} 秒");
 
         yield break;
@@ -363,11 +363,11 @@ public class PlayerUnit : MonoBehaviour
     //配置可能マスを青く光らせる処理
     private void ShowPlacementHighlights()
     {
-        if (selectedUnitData == null || highlightTilemap == null || highlightTile == null)
-            return;
-
         // まず既存ハイライトを消去
         ClearHighlights();
+
+        if (selectedUnitData == null || highlightTilemap == null || highlightTile == null)
+            return;
 
         // 高台のみ配置可能
         if (selectedUnitData.canPlaceHighWay && !selectedUnitData.canPlaceWay)
