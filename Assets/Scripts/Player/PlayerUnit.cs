@@ -130,6 +130,7 @@ public class PlayerUnit : MonoBehaviour
         }
     }
 
+    //ユニットの配置
     private IEnumerator PlaceWithGuard(Vector3Int gridPos, bool isHighWay)
     {
         isPlacing = true;
@@ -200,19 +201,10 @@ public class PlayerUnit : MonoBehaviour
         }
 
         occupiedCells.Add(gridPos);
+        string unitName = selectedUnitData.name;
 
-        //古いクールダウンコード
-        /*配置完了後にインターバル開始
-        isOnCooldown = true;
-        placementTimer = placementCooldown;
-        // 配置完了後、ハイライトを消去
+        // ハイライトを消す
         ClearHighlights();
-        Debug.Log($"ユニット配置後クールダウン開始: {placementCooldown}秒");
-
-        //クールダウンUI更新
-        if (cooldownText != null)
-            cooldownText.text = $"次の配置まで：{placementCooldown:F1} 秒";
-        */
         //このユニット種類のクールタイムを再カウント
         float ct = selectedUnitData.placementCooldownBase + selectedUnitData.upgradeCount * 3f;
         selectedUnitData.runtimePlacementCooldown = ct;
@@ -365,7 +357,7 @@ public class PlayerUnit : MonoBehaviour
     {
         // まず既存ハイライトを消去
         ClearHighlights();
-
+        
         if (selectedUnitData == null || highlightTilemap == null || highlightTile == null)
             return;
 

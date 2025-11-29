@@ -24,6 +24,12 @@ MonoBehaviour:
     canPlaceWay: 1
     canPlaceHighWay: 0
     upgradeCount: 0
+    runtimeAttack: 1
+    runtimeMaxHp: 5
+    runtimeBlock: 2
+    placementCooldownBase: 5
+    runtimePlacementCooldown: 8
+    cooldownEndTime: 0
   - id: 1
     name: Warrior
     maxHp: 5
@@ -34,7 +40,13 @@ MonoBehaviour:
     blockCount: 1
     canPlaceWay: 1
     canPlaceHighWay: 0
-    upgradeCount: 1
+    upgradeCount: 0
+    runtimeAttack: 2
+    runtimeMaxHp: 5
+    runtimeBlock: 1
+    placementCooldownBase: 5
+    runtimePlacementCooldown: 5
+    cooldownEndTime: 0
   - id: 2
     name: Wizard
     maxHp: 5
@@ -46,3 +58,9 @@ MonoBehaviour:
     canPlaceWay: 0
     canPlaceHighWay: 1
     upgradeCount: 0
+    runtimeAttack: 3
+    runtimeMaxHp: 5
+    runtimeBlock: 0
+    placementCooldownBase: 5
+    runtimePlacementCooldown: 5
+    cooldownEndTime: 0
