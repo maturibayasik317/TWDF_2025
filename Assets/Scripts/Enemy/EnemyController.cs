@@ -25,16 +25,6 @@ public class EnemyController : MonoBehaviour
     void Start()
     {
         TryGetComponent(out animator); 
-     /*   // 経路を取得
-        path = pathData.pathArray.Select(x => x.position).ToArray();
-        // スタート地点に敵をセット
-        transform.position = pathData.positionStart.position;
-        // 経路の総距離を計算
-        float totalDistance = CalculatePathLength(path);
-        // 移動時間を計算 (距離 ÷ 速度)
-        float moveDuration = totalDistance / speed;
-        // 経路に沿って移動
-     */
     }
 
     void Update()

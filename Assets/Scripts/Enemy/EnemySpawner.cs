@@ -10,6 +10,8 @@ public class EnemySpawner : MonoBehaviour
     private PathData[] pathDataArray; // ˆÚ“®Œo˜Hî•ñ‚Ì”z—ñ
     [SerializeField]
     private GameManager gameManager;
+    int enemyId = DBManager.instance.enemySetting.GetRandomEnemyIdByType(selectedPath.spawnEnemyType);
+    PathData selectedPath = GetWeightedRandomPath(pathDataArray);
 
 
     // “G‚Ì¶¬ŠÇ—
@@ -51,5 +53,24 @@ public class EnemySpawner : MonoBehaviour
         // “Gƒf[ƒ^‚Ì‰Šú‰»
         enemyController.InitializeEnemy(selectedPath, gameManager, DBManager.instance.enemySetting.enemyDataList[enemyId]);
 
+    }
+
+    public EnemySetting.EnemyData GetRandomEnemy()
+    {
+        float totalWeight = 0f;
+
+        foreach (var enemy in enemySetting.enemyDataList)
+            totalWeight += enemy.weight;
+
+        float random = UnityEngine.Random.Range(0, totalWeight);
+
+        foreach (var enemy in enemySetting.enemyDataList)
+        {
+            if (random < enemy.weight)
+                return enemy;
+
+            random -= enemy.weight;
+        }
+        return enemySetting.enemyDataList[0];
     }
 }
