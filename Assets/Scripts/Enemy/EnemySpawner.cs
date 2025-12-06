@@ -1,76 +1,146 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [SerializeField]
-    private EnemyController enemyPrefab; // 敵のプレハブ
-    [SerializeField]
-    private PathData[] pathDataArray; // 移動経路情報の配列
-    [SerializeField]
-    private GameManager gameManager;
-    int enemyId = DBManager.instance.enemySetting.GetRandomEnemyIdByType(selectedPath.spawnEnemyType);
-    PathData selectedPath = GetWeightedRandomPath(pathDataArray);
+    [SerializeField] private EnemyController enemyPrefab; // 敵のプレハブ
+    [SerializeField] private PathData[] pathDataArray;    // 移動経路情報の配列
+    [SerializeField] private GameManager gameManager;
 
+    private Coroutine spawnCoroutine;
+    // 「残りの敵」を管理する辞書
+    private Dictionary<PathData, List<EnemySetting.EnemyData>> spawnPool
+        = new Dictionary<PathData, List<EnemySetting.EnemyData>>();
 
-    // 敵の生成管理
+    void Start()
+    {
+        BuildSpawnPool();
+    }
+
+    // PathData.spawnList → 実際の敵データリストへ変換
+    private void BuildSpawnPool()
+    {
+        spawnPool.Clear();
+
+        foreach (var path in pathDataArray)
+        {
+            List<EnemySetting.EnemyData> list = new List<EnemySetting.EnemyData>();
+
+            foreach (var entry in path.spawnList)
+            {
+                for (int i = 0; i < entry.count; i++)
+                {
+                    int id = DBManager.instance.enemySetting
+                        .GetRandomEnemyIdByType(entry.enemyType);
+
+                    list.Add(DBManager.instance.enemySetting.enemyDataList[id]);
+                }
+            }
+
+            spawnPool[path] = list;
+        }
+    }
+
+    // ====== 生成管理 ======
     public IEnumerator ManageSpawning()
     {
         while (!gameManager.isGameStarted)
-        {
             yield return null;
-        }
 
-        int timer = 0; // タイマーの初期化
-        while (gameManager.isSpawning) // 敵を生成可能ならば
+        int timer = 0;
+
+        while (gameManager.isSpawning)
         {
-            timer++; // タイマー加算
-            if (timer > gameManager.spawnInterval) // タイマーが敵生成間隔を超えたら
+            timer++;
+
+            if (timer > gameManager.spawnInterval)
             {
-                timer = 0; // タイマーリセット
-                Spawn(); // 敵生成
-                gameManager.AddEnemyToList(); // 敵の情報をListに追加
-                gameManager.CheckSpawnLimit();  // 最大生成数を超えたら敵の生成停止
+                timer = 0;
+                Spawn();
+                gameManager.AddEnemyToList();
+                gameManager.CheckSpawnLimit();
             }
+
             yield return null;
         }
     }
 
-    // 敵の生成
+    // 敵 1 体スポーン
     public void Spawn()
     {
-        // ランダムな経路を選択
-        PathData selectedPath = pathDataArray[Random.Range(0, pathDataArray.Length)];
+        // まだ出せる Path を絞る
+        var availablePaths = spawnPool
+            .Where(p => p.Value.Count > 0)
+            .Select(p => p.Key)
+            .ToList();
 
-        // スタート地点プレハブから敵を生成
-        EnemyController enemyController = Instantiate(enemyPrefab, selectedPath.positionStart.position, Quaternion.identity);
+        if (availablePaths.Count == 0)
+        {
+            Debug.Log("全ての敵を出し切りました");
+            gameManager.isSpawning = false;
+            return;
+        }
 
-        // ランダムな敵を選択
-        int enemyId = Random.Range(0, DBManager.instance.enemySetting.enemyDataList.Count);
-        // 経路情報を初期化
+        // 重み付きランダムで Path を選ぶ
+        PathData selectedPath = GetWeightedRandomPath(availablePaths.ToArray());
 
-        // 敵データの初期化
-        enemyController.InitializeEnemy(selectedPath, gameManager, DBManager.instance.enemySetting.enemyDataList[enemyId]);
+        // その Path の敵リストからランダム1体
+        List<EnemySetting.EnemyData> enemyList = spawnPool[selectedPath];
+        int index = UnityEngine.Random.Range(0, enemyList.Count);
 
+        EnemySetting.EnemyData data = enemyList[index];
+        enemyList.RemoveAt(index);   // ← 出したので減らす
+
+        // 生成処理
+        Vector3 pos = selectedPath.positionStart.position;
+        EnemyController c = Instantiate(enemyPrefab, pos, Quaternion.identity);
+        c.InitializeEnemy(selectedPath, gameManager, data);
     }
 
-    public EnemySetting.EnemyData GetRandomEnemy()
+
+    // PathData 用の重み付きランダム
+    private PathData GetWeightedRandomPath(PathData[] paths)
     {
-        float totalWeight = 0f;
+        float total = 0f;
+        foreach (var p in paths) total += Mathf.Max(0, p.spawnWeight);
 
-        foreach (var enemy in enemySetting.enemyDataList)
-            totalWeight += enemy.weight;
+        float r = UnityEngine.Random.Range(0, total);
 
-        float random = UnityEngine.Random.Range(0, totalWeight);
-
-        foreach (var enemy in enemySetting.enemyDataList)
+        foreach (var p in paths)
         {
-            if (random < enemy.weight)
-                return enemy;
+            float w = Mathf.Max(0f, p.spawnWeight);
+            if (r < w) return p;
+            r -= w;
+        }
 
-            random -= enemy.weight;
+        return paths[paths.Length - 1];
+    }
+
+    // ====== 不要：敵の重み付きランダム（使っていないためコメントアウト） ======
+    /*
+    private EnemySetting.EnemyData GetRandomEnemyByWeight()
+    {
+        var enemySetting = DBManager.instance.enemySetting;
+        if (enemySetting == null || enemySetting.enemyDataList.Count == 0)
+            return null;
+
+        float total = 0f;
+        foreach (var e in enemySetting.enemyDataList)
+            total += Mathf.Max(0f, e.weight);
+
+        if (total <= 0f)
+            return enemySetting.enemyDataList[Random.Range(0, enemySetting.enemyDataList.Count)];
+
+        float r = Random.Range(0f, total);
+        foreach (var e in enemySetting.enemyDataList)
+        {
+            float w = Mathf.Max(0f, e.weight);
+            if (r < w) return e;
+            r -= w;
         }
         return enemySetting.enemyDataList[0];
     }
+    */
 }

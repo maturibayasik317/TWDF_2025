@@ -21,7 +21,6 @@ public class EnemySetting : ScriptableObject
         [Header("AI / 出現設定")]
         public float weight = 1f;   // 出現確率（総当たり方式）
         public EnemyType type;      // 敵タイプ
-        public EnemyType enemyType = EnemyType.Normal;
     }
 
     public enum EnemyType
@@ -40,7 +39,7 @@ public class EnemySetting : ScriptableObject
         // 指定タイプの敵をリスト化
         for (int i = 0; i < enemyDataList.Count; i++)
         {
-            if (enemyDataList[i].enemyType == targetType)
+            if (enemyDataList[i].type == targetType)
             {
                 candidateIndexes.Add(i);
             }

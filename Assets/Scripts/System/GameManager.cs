@@ -167,9 +167,7 @@ public class GameManager : MonoBehaviour
     // 敵の情報をListに追加
     public void AddEnemyToList()
     {
-        // 注意: このメソッドが RegisterSpawnedEnemy と併用されると spawnedEnemyCount が二重増加する可能性があります。
-        // 必要なら整理してください（例: AddEnemyToList を使わない、または RegisterSpawnedEnemy に統一する）。
-        spawnedEnemyCount++; // 生成した敵の数を増やす
+      spawnedEnemyCount++; // 生成した敵の数を増やす
     }
 
     // 敵の生成が上限に達したかを確認
